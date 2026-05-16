@@ -2,12 +2,62 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function uiIcon(name,size=18){
+  const icons={
+    folder:'<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+    trash:'<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+    book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/>',
+    info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+    tag:'<path d="M20.59 13.41 11 3H4v7l9.59 9.59a2 2 0 0 0 2.82 0l4.18-4.18a2 2 0 0 0 0-2.82Z"/><path d="M7 7h.01"/>',
+    save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/>',
+    image:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
+    text:'<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>',
+    note:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+    draw:'<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/>',
+    frame:'<rect x="3" y="3" width="18" height="18" rx="2"/><rect x="6" y="6" width="12" height="9" rx="1"/>',
+    crop:'<polyline points="6 2 6 6 2 6"/><polyline points="18 2 18 6 22 6"/><polyline points="6 22 6 18 2 18"/><polyline points="18 22 18 18 22 18"/>',
+    contrast:'<circle cx="12" cy="12" r="9"/><path d="M12 3v18"/>',
+    palette:'<circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2a10 10 0 0 0 0 20h1.5a2.5 2.5 0 0 0 0-5H12a2 2 0 0 1 0-4h2a8 8 0 0 0 0-16z"/>',
+    layers:'<path d="m12 2 10 5-10 5L2 7l10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>',
+    edit:'<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
+    lock:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+    group:'<rect x="2" y="2" width="8" height="8"/><rect x="14" y="14" width="8" height="8"/><path d="M10 6h4"/><path d="M18 10v4"/>',
+    keyboard:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M8 13h8"/>',
+    eye:'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+    mouse:'<rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 7v4"/>',
+    pin:'<path d="M12 17v5"/><path d="M5 17h14"/><path d="m7 10 5-7 5 7"/><path d="M8 10h8v7H8z"/>',
+    align:'<path d="M4 6h16"/><path d="M7 12h10"/><path d="M4 18h16"/>',
+    ruler:'<rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 7v4M11 7v3M15 7v4M19 7v3"/><path d="M7 17v-3M11 17v-2M15 17v-3M19 17v-2"/>',
+    spark:'<path d="m12 2 1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2Z"/>',
+    pen:'<path d="m16 3 5 5L8 21H3v-5L16 3z"/>',
+    bolt:'<path d="m13 2-10 12h9l-1 8 10-12h-9l1-8z"/>',
+  };
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icons[name]||icons.info}</svg>`;
+}
+
 function closeSearchDropdown() {
   const dd = document.getElementById('search-dropdown');
   if (dd) dd.style.display = 'none';
   const inp = document.getElementById('home-search');
   if (inp) inp.value = '';
   renderHome();
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const isEditor=id==='editor-screen';
+  document.getElementById('editor-tools').style.display=isEditor?'flex':'none';
+  document.getElementById('proj-crumb').style.display=isEditor?'flex':'none';
+  document.getElementById('compare-btn')?.classList.toggle('active',id==='compare-screen');
+}
+
+function goHome(){
+  try{autoSave();}catch(e){console.warn('Autosave before home failed',e);}
+  localStorage.removeItem('mbp_last_proj');
+  localStorage.removeItem('mbp_last_cv');
+  renderHome();
+  showScreen('home-screen');
 }
 
 // Close dropdown when clicking outside
@@ -153,6 +203,194 @@ function switchGuideTab(tab){
   document.getElementById('guide-about-panel').style.display=isGuide?'none':'block';
   document.getElementById('gtab-guide').classList.toggle('active',isGuide);
   document.getElementById('gtab-about').classList.toggle('active',!isGuide);
+}
+function replaceDecorativeEmojiIcons(){
+  const setIcon=(el,name,size=18)=>{if(el)el.innerHTML=uiIcon(name,size);};
+  const tabProjects=document.getElementById('tab-projects');
+  if(tabProjects)tabProjects.innerHTML=uiIcon('folder',13)+' Projects';
+  const tabTrash=document.getElementById('tab-trash');
+  if(tabTrash)tabTrash.innerHTML=uiIcon('trash',13)+' Trash';
+  const guideTab=document.getElementById('gtab-guide');
+  if(guideTab)guideTab.innerHTML=uiIcon('book',13)+' Guía de uso';
+  const aboutTab=document.getElementById('gtab-about');
+  if(aboutTab)aboutTab.innerHTML=uiIcon('spark',13)+' Acerca de';
+
+  const sectionIcons=['folder','image','layers','keyboard','spark'];
+  document.querySelectorAll('.guide-section-title').forEach((el,i)=>{
+    const clean=['Proyectos & Canvas','Herramientas de diseño','Capas & Organización','Atajos de teclado','Consejos pro'][i]||el.textContent.replace(/[^\wÀ-ÿ& ]/g,'').trim();
+    el.innerHTML=uiIcon(sectionIcons[i]||'info',14)+`<span>${clean}</span>`;
+  });
+
+  const cardIconByTitle={
+    'Crear proyectos':'folder','Etiquetas (Tags)':'tag','Papelera':'trash','Guardado automático':'save',
+    'Añadir imágenes':'image','Texto':'text','Notas (Sticky Notes)':'note','Dibujar':'draw','Marco / Polaroid':'frame',
+    'Recortar imagen':'crop','Blanco y negro':'contrast','Extraer colores':'palette','Panel de capas':'layers',
+    'Renombrar capas':'edit','Bloquear capa':'lock','Capas anidadas':'layers','Navegación':'keyboard','Edición':'keyboard',
+    'Historial':'keyboard','Modo Zen':'eye','Clic derecho':'mouse','Panel de propiedades':'pin','Reglas y guías':'ruler',
+    'Comparador visual':'palette','Export / Import .mb':'save'
+  };
+  document.querySelectorAll('.guide-card').forEach(card=>{
+    const title=card.querySelector('.guide-card-title')?.textContent.trim();
+    setIcon(card.querySelector('.guide-card-icon'),cardIconByTitle[title]||'info',22);
+  });
+
+  const aboutPanel=document.getElementById('guide-about-panel');
+  const aboutHero=aboutPanel?.querySelector('div[style*="font-size:32px"]');
+  setIcon(aboutHero,'spark',28);
+  const aboutCards=aboutPanel?.querySelectorAll('div[style*="background:var(--surface2)"]');
+  ['palette','folder','pen','bolt'].forEach((name,i)=>setIcon(aboutCards?.[i]?.querySelector('div'),name,20));
+
+  document.querySelectorAll('.wf-icon').forEach((el,i)=>setIcon(el,['palette','folder','eye','bolt'][i]||'info',18));
+}
+
+function renderCvList(){
+  const list=document.getElementById('cv-list');
+  if(!list)return;
+  list.innerHTML='';
+  if(!curProj)return;
+  const proj=projects[curProj];
+  Object.entries(proj.canvases).forEach(([cid,cvData])=>{
+    const item=document.createElement('div');
+    item.className='cv-item'+(curCv===cid?' active':'');
+    item.innerHTML=`
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/></svg>
+      <div class="cv-item-name">${cvData.name}</div>
+      <div class="cv-item-acts">
+        <button class="cv-item-act" onclick="startRenCv('${curProj}','${cid}',event)" title="Rename">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="cv-item-act" onclick="delCv('${curProj}','${cid}',event)">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>`;
+    item.onclick=e=>{if(e.target.closest('.cv-item-acts'))return;switchCv(curProj,cid);};
+    item.addEventListener('dblclick',e=>{
+      if(e.target.closest('.cv-item-acts'))return;
+      e.preventDefault(); e.stopPropagation();
+      startRenCv(curProj,cid,{stopPropagation:()=>{}});
+    });
+    item.addEventListener('contextmenu',e=>{
+      e.preventDefault(); e.stopPropagation();
+      openCvCtx(curProj,cid,e.clientX,e.clientY);
+    });
+    list.appendChild(item);
+  });
+  const addBtn=document.createElement('button');
+  addBtn.className='btn-newcv';
+  addBtn.innerHTML=`<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Canvas`;
+  addBtn.onclick=()=>openNewCvModal(curProj);
+  list.appendChild(addBtn);
+}
+
+function openNewCvModal(pid){
+  newCvForProj=pid;renamingCvId=null;
+  document.getElementById('m-cv-t').textContent='New Canvas';
+  document.getElementById('m-cv-n').value='Board '+(Object.keys(projects[pid].canvases).length+1);
+  openM('m-cv');
+  setTimeout(()=>document.getElementById('m-cv-n').select(),40);
+}
+function startRenCv(pid,cid,e){
+  e.stopPropagation();newCvForProj=pid;renamingCvId=cid;
+  document.getElementById('m-cv-t').textContent='Rename Canvas';
+  document.getElementById('m-cv-n').value=projects[pid].canvases[cid].name;
+  openM('m-cv');
+  setTimeout(()=>document.getElementById('m-cv-n').select(),40);
+}
+function confirmCv(){
+  const name=document.getElementById('m-cv-n').value.trim()||'Untitled';
+  closeM('m-cv');
+  if(renamingCvId){
+    projects[newCvForProj].canvases[renamingCvId].name=name;
+    renamingCvId=null;newCvForProj=null;saveLS();renderCvList();
+  } else {
+    const cid=createCv(newCvForProj,name);
+    saveLS();switchCv(newCvForProj,cid);newCvForProj=null;
+  }
+}
+function delCv(pid,cid,e){
+  e.stopPropagation();
+  if(Object.keys(projects[pid].canvases).length===1)return toast('Cannot delete the only canvas');
+  customConfirm(`Delete canvas "${projects[pid].canvases[cid].name}"?`, ()=>{
+    delete projects[pid].canvases[cid]; saveLS();
+    if(curProj===pid&&curCv===cid){
+      curCv=null;
+      const ncid=Object.keys(projects[pid].canvases)[0];
+      switchCv(pid,ncid);
+    } else renderCvList();
+  });
+}
+
+function openM(id){document.getElementById(id).classList.add('on');}
+function closeM(id){document.getElementById(id).classList.remove('on');}
+
+function clearAll(){
+  customConfirm('This will remove all objects from this canvas. Cannot be undone.', ()=>{
+    cv.clear(); cv.backgroundColor=null; layers=[]; activeLayerId=null;
+    manualGuides={x:[],y:[]};
+    smartGuides={x:[],y:[]};
+    newLayer('Layer 1'); cv.renderAll(); renderGuideLayer(); toast('Board cleared');
+  }, 'Clear Canvas', 'Clear all', true);
+}
+function dlBlob(blob,name){
+  const u=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=u;a.download=name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(u),1000);
+}
+
+function onSearchInput(){
+  const q=(document.getElementById('home-search')?.value||'').trim();
+  const qLower=q.toLowerCase();
+  const dd=document.getElementById('search-dropdown');
+  if(!dd)return;
+  renderHome();
+  if(!q){dd.style.display='none';return;}
+  const results=Object.entries(projects)
+    .filter(([,p])=>!p.deleted)
+    .filter(([,p])=>{
+      const inName=String(p.name||'').toLowerCase().includes(qLower);
+      const inTags=(p.tags||[]).some(t=>String(t).toLowerCase().includes(qLower));
+      const inStatus=getProjectStatus(p.status).label.toLowerCase().includes(qLower);
+      return inName||inTags||inStatus;
+    })
+    .slice(0,7);
+  dd.innerHTML='';
+  if(!results.length){
+    dd.innerHTML=`<div class="sri-empty">No projects match "<strong>${escHtml(q)}</strong>"</div>`;
+    dd.style.display='block';
+    return;
+  }
+  results.forEach(([pid,proj])=>{
+    const firstCvId=Object.keys(proj.canvases)[0];
+    const item=document.createElement('div');
+    item.className='search-result-item';
+    const thumbHtml=proj.thumbnail
+      ?`<img src="${proj.thumbnail}" alt="">`
+      :`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
+    const highlightedName=highlightMatch(proj.name,q);
+    const tagHtml=(proj.tags||[]).map(t=>`<span class="proj-card-tag" style="${String(t).toLowerCase().includes(qLower)?'background:var(--acl);border-color:var(--accent);color:var(--accent)':''}">${escHtml(t)}</span>`).join('');
+    const cvCount=Object.keys(proj.canvases).length;
+    item.innerHTML=`
+      <div class="sri-thumb">${thumbHtml}</div>
+      <div style="min-width:0;flex:1;">
+        <div class="sri-name">${highlightedName}</div>
+        <div class="sri-meta">${cvCount} canvas${cvCount!==1?'es':''} · ${escHtml(getProjectStatus(proj.status).label)}</div>
+        ${tagHtml?`<div class="sri-tags">${tagHtml}</div>`:''}
+      </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2" style="flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>`;
+    item.onclick=()=>{ closeSearchDropdown(); openEditor(pid,firstCvId); };
+    dd.appendChild(item);
+  });
+  dd.style.display='block';
+}
+
+function highlightMatch(text, query) {
+  if (!query) return escHtml(text);
+  const idx=text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx===-1) return escHtml(text);
+  return escHtml(text.slice(0,idx))
+    + `<mark>${escHtml(text.slice(idx,idx+query.length))}</mark>`
+    + escHtml(text.slice(idx+query.length));
 }
 document.addEventListener('DOMContentLoaded',()=>{
   const ov=document.getElementById('welcome-overlay');
@@ -798,25 +1036,10 @@ function renderHome(){
   }
 
   // Build tag filter pills from all projects
-  const allTags=new Set();
-  Object.values(projects).forEach(p=>(p.tags||[]).forEach(t=>allTags.add(t)));
   const tagBar=document.getElementById('tag-filter-bar');
   if(tagBar){
     tagBar.innerHTML='';
-    if(allTags.size){
-      const anyPill=document.createElement('button');
-      anyPill.className='tag-filter-pill'+(activeTagFilter===null?' active':'');
-      anyPill.textContent='All';
-      anyPill.onclick=()=>{activeTagFilter=null;renderHome();};
-      tagBar.appendChild(anyPill);
-      allTags.forEach(tag=>{
-        const pill=document.createElement('button');
-        pill.className='tag-filter-pill'+(activeTagFilter===tag?' active':'');
-        pill.textContent=tag;
-        pill.onclick=()=>{activeTagFilter=activeTagFilter===tag?null:tag;renderHome();};
-        tagBar.appendChild(pill);
-      });
-    }
+    tagBar.style.display='none';
   }
 
   let entries=Object.entries(projects);
@@ -873,9 +1096,21 @@ function renderHome(){
     const newCard=document.createElement('div');
     newCard.className='proj-card proj-card-new';
     newCard.innerHTML=`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>New Project</span>`;
-    newCard.onclick=()=>newProjHome();
-    grid.appendChild(newCard);
-  }
+  newCard.onclick=()=>newProjHome();
+  grid.appendChild(newCard);
+}
+
+function buildThumbHtml(pid,cid,color){
+  try{
+    const cvData=projects[pid]?.canvases[cid];
+    if(cvData?.json){
+      const d=typeof cvData.json==='string'?JSON.parse(cvData.json):cvData.json;
+      const objCount=(d.canvas?.objects||d.objects||[]).length;
+      return `<div style="font-size:12px;color:${color};font-weight:700;font-family:'DM Mono',monospace;opacity:.6">${objCount} object${objCount!==1?'s':''}</div>`;
+    }
+  }catch(e){}
+  return `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>`;
+}
 }
 
 // New project from home (open modal)

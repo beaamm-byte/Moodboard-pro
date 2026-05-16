@@ -76,13 +76,309 @@ let _switchLoadSeq=0;
 const _collapsedLayers=new Set();
 const RULER_SIZE=20;
 const GUIDE_SNAP=8;
-let rulersEnabled=false;
+let rulersEnabled=true;
 let manualGuides={x:[],y:[]};
 let smartGuides={x:[],y:[]};
 let guideDrag=null;
 let hoveredManualGuide=null;
 let tT; // toast timer
 let _clipboard=null; // cross-canvas clipboard: stores serialized Fabric object JSON // layer ids that are visually collapsed
+let _imageAssetDb=null;
+let _imageAssetCache=new Map();
+let _imageAssetInitPromise=null;
+let _workspaceDb=null;
+let _workspaceInitPromise=null;
+
+function loadLS(){
+  try{
+    const r=localStorage.getItem('mbp6');
+    if(r)projects=JSON.parse(r);
+  }catch(e){}
+  return Promise.resolve(!!Object.keys(projects||{}).length);
+}
+
+function trimNonEssentialProjectData(){
+  Object.values(projects||{}).forEach(p=>{
+    if(!p)return;
+    p.thumbnail=null;
+    if(Array.isArray(p.comparisons)){
+      p.comparisons=p.comparisons.slice(0,4).map(c=>({
+        id:c.id,
+        name:c.name,
+        canvasId:c.canvasId,
+        createdAt:c.createdAt,
+        summary:c.summary,
+        palette:c.palette||[],
+        refs:(c.refs||[]).map(r=>({name:r.name,palette:r.palette||[],tone:r.tone,mood:r.mood,contrast:r.contrast}))
+      }));
+    }
+    if(Array.isArray(p.palettes))p.palettes=p.palettes.slice(0,12);
+  });
+}
+
+async function saveLS(){
+  const snapshot={v:1,projects,updatedAt:Date.now()};
+  try{
+    localStorage.setItem('mbp6',JSON.stringify(projects));
+  }catch(e){
+    console.warn('MoodBoard Pro localStorage save failed',e);
+    trimNonEssentialProjectData();
+    try{
+      localStorage.setItem('mbp6',JSON.stringify(projects));
+    }catch(e2){
+      console.warn('MoodBoard Pro compact localStorage save failed',e2);
+    }
+    const now=Date.now();
+    if(now-_lastSaveErrorToast>15000){
+      toast?.('No se pudo guardar: reduce el tamaño o número de imágenes');
+      _lastSaveErrorToast=now;
+    }
+  }
+  saveWorkspaceState(snapshot).catch(()=>{});
+  return true;
+}
+
+function initImageAssetStore(){
+  if(_imageAssetInitPromise)return _imageAssetInitPromise;
+  _imageAssetInitPromise=new Promise(resolve=>{
+    if(!('indexedDB' in window)){
+      resolve(false);
+      return;
+    }
+    const req=indexedDB.open('mbp-assets',2);
+    req.onupgradeneeded=()=>{
+      const db=req.result;
+      if(!db.objectStoreNames.contains('images'))db.createObjectStore('images');
+      if(!db.objectStoreNames.contains('workspace'))db.createObjectStore('workspace');
+    };
+    req.onsuccess=()=>{
+      _imageAssetDb=req.result;
+      try{
+        const tx=_imageAssetDb.transaction('images','readonly');
+        const store=tx.objectStore('images');
+        const keysReq=store.getAllKeys();
+        const valsReq=store.getAll();
+        valsReq.onsuccess=()=>{
+          const vals=valsReq.result||[];
+          keysReq.onsuccess=()=>{
+            const keys=keysReq.result||[];
+            keys.forEach((k,i)=>_imageAssetCache.set(String(k),vals[i]));
+            resolve(true);
+          };
+          keysReq.onerror=()=>resolve(true);
+        };
+        valsReq.onerror=()=>resolve(true);
+      }catch(e){
+        resolve(true);
+      }
+    };
+    req.onerror=()=>resolve(false);
+  });
+  return _imageAssetInitPromise;
+}
+
+function putImageAsset(dataUrl){
+  return putImageAssetWithKey('img_'+genId(),dataUrl);
+}
+
+function putImageAssetWithKey(key,dataUrl){
+  return initImageAssetStore().then(()=>{
+    const safeKey=String(key);
+    _imageAssetCache.set(safeKey,dataUrl);
+    if(_imageAssetDb){
+      try{
+        const tx=_imageAssetDb.transaction('images','readwrite');
+        tx.objectStore('images').put(dataUrl,safeKey);
+      }catch(e){}
+    }
+    return safeKey;
+  });
+}
+
+function getImageAsset(key){
+  return _imageAssetCache.get(String(key))||null;
+}
+
+async function registerImageAssetFromObject(img){
+  if(!img||img.type!=='image')return null;
+  const src=img.getSrc?.()||img._originalElement?.src||img._element?.src||img.src||'';
+  if(typeof src!=='string'||!src.startsWith('data:image/'))return null;
+  const key=await putImageAsset(src);
+  img.__assetKey=key;
+  return key;
+}
+
+function normalizeAssetRefs(value){
+  if(!value||typeof value!=='object')return value;
+  if(Array.isArray(value))return value.map(normalizeAssetRefs);
+  const out={};
+  Object.entries(value).forEach(([k,v])=>{
+    if(k==='src'&&typeof v==='string'&&v.startsWith('mbasset:')){
+      const key=v.slice(8);
+      out[k]=getImageAsset(key)||v;
+      return;
+    }
+    out[k]=normalizeAssetRefs(v);
+  });
+  return out;
+}
+
+function migrateCanvasImageAssets(){
+  if(!cv)return Promise.resolve();
+  const imgs=cv.getObjects().filter(o=>o.type==='image');
+  return Promise.all(imgs.map(img=>registerImageAssetFromObject(img))).then(()=>true);
+}
+
+function loadWorkspaceState(){
+  const tryLoadFromDb=(db,store,key)=>new Promise(resolve=>{
+    if(!db){resolve(null);return;}
+    try{
+      const tx=db.transaction(store,'readonly');
+      const req=tx.objectStore(store).get(key);
+      req.onsuccess=()=>resolve(req.result||null);
+      req.onerror=()=>resolve(null);
+    }catch(e){resolve(null);}
+  });
+  return initWorkspaceStore().then(async()=>{
+    let state=await tryLoadFromDb(_workspaceDb,'state','workspace');
+    if(state&&state.projects)return state;
+    const legacy=await initImageAssetStore().then(()=>tryLoadFromDb(_imageAssetDb,'workspace','workspace'));
+    if(legacy&&legacy.projects){
+      saveWorkspaceState(legacy).catch(()=>{});
+      return legacy;
+    }
+    return null;
+  });
+}
+
+function saveWorkspaceState(snapshot){
+  return initWorkspaceStore().then(()=>new Promise(resolve=>{
+    if(!_workspaceDb){resolve(false);return;}
+    try{
+      const tx=_workspaceDb.transaction('state','readwrite');
+      tx.objectStore('state').put(snapshot,'workspace');
+      tx.oncomplete=()=>resolve(true);
+      tx.onerror=()=>resolve(false);
+      tx.onabort=()=>resolve(false);
+    }catch(e){
+      resolve(false);
+    }
+  }));
+}
+
+function initWorkspaceStore(){
+  if(_workspaceInitPromise)return _workspaceInitPromise;
+  _workspaceInitPromise=new Promise(resolve=>{
+    if(!('indexedDB' in window)){
+      resolve(false);
+      return;
+    }
+    const req=indexedDB.open('mbp-workspace',1);
+    req.onupgradeneeded=()=>{
+      const db=req.result;
+      if(!db.objectStoreNames.contains('state'))db.createObjectStore('state');
+    };
+    req.onsuccess=()=>{
+      _workspaceDb=req.result;
+      resolve(true);
+    };
+    req.onerror=()=>resolve(false);
+  });
+  return _workspaceInitPromise;
+}
+
+function collectAssetKeysFromValue(value, out=new Set()){
+  if(!value||typeof value!=='object')return out;
+  if(Array.isArray(value)){
+    value.forEach(v=>collectAssetKeysFromValue(v,out));
+    return out;
+  }
+  Object.entries(value).forEach(([k,v])=>{
+    if(k==='src'&&typeof v==='string'&&v.startsWith('mbasset:')){
+      out.add(v.slice(8));
+      return;
+    }
+    collectAssetKeysFromValue(v,out);
+  });
+  return out;
+}
+
+async function compactDataImageRefs(value){
+  if(!value||typeof value!=='object')return value;
+  if(Array.isArray(value)){
+    const arr=[];
+    for(let i=0;i<value.length;i++)arr[i]=await compactDataImageRefs(value[i]);
+    return arr;
+  }
+  const out={};
+  for(const [k,v] of Object.entries(value)){
+    if(k==='src'&&typeof v==='string'&&v.startsWith('data:image/')){
+      const key=await putImageAsset(v);
+      out[k]='mbasset:'+key;
+      continue;
+    }
+    out[k]=await compactDataImageRefs(v);
+  }
+  return out;
+}
+
+async function compactCanvasJsonAssets(json){
+  if(!json)return {json,changed:false};
+  const parsed=typeof json==='string'?JSON.parse(json):json;
+  const compacted=await compactDataImageRefs(parsed);
+  const out=typeof json==='string'?JSON.stringify(compacted):compacted;
+  return {json:out,changed:out!==json};
+}
+
+async function compactWorkspaceImageAssets(workspace=projects){
+  let changed=false;
+  for(const proj of Object.values(workspace||{})){
+    for(const cvData of Object.values(proj?.canvases||{})){
+      if(!cvData||!cvData.json)continue;
+      const res=await compactCanvasJsonAssets(cvData.json);
+      if(res.changed){
+        cvData.json=res.json;
+        changed=true;
+      }
+    }
+  }
+  return changed;
+}
+
+async function preloadImageAssetBundle(assets={}){
+  const entries=Object.entries(assets||{});
+  for(const [key,dataUrl] of entries){
+    if(typeof dataUrl==='string'&&dataUrl.startsWith('data:image/')){
+      await putImageAssetWithKey(key,dataUrl);
+    }
+  }
+  return true;
+}
+
+async function buildAssetBundleForProjects(workspace=projects){
+  const keys=new Set();
+  Object.values(workspace||{}).forEach(proj=>{
+    Object.values(proj?.canvases||{}).forEach(cvData=>{
+      if(!cvData||!cvData.json)return;
+      try{
+        const parsed=typeof cvData.json==='string'?JSON.parse(cvData.json):cvData.json;
+        collectAssetKeysFromValue(parsed,keys);
+      }catch(e){}
+    });
+  });
+  const assets={};
+  for(const key of keys){
+    const data=_imageAssetCache.get(String(key));
+    if(data)assets[key]=data;
+  }
+  return assets;
+}
+
+function createCv(projId,name){
+  const id=genId();
+  projects[projId].canvases[id]={name,json:null};
+  return id;
+}
 
 function getCollapsedLayerIds(){return [..._collapsedLayers];}
 function setCollapsedLayerIds(ids=[]){
@@ -360,7 +656,17 @@ function projectStatusBadge(statusId){
 function renderProjectStatusOptions(selected='draft'){
   return PROJECT_STATUSES.map(s=>`<option value="${s.id}" ${s.id===selected?'selected':''}>${s.label}</option>`).join('');
 }
-const FABRIC_CUSTOM_PROPS=['__id','__lid','__name','_isSticky','_stickyColor','_isFrame','_isPolaroid'];
+const FABRIC_CUSTOM_PROPS=['__id','__lid','__name','__assetKey','_isSticky','_stickyColor','_isFrame','_isPolaroid'];
+
+if(typeof fabric!=='undefined'&&fabric.Image&&fabric.Image.prototype&&!fabric.Image.prototype.__mbpToObjectPatched){
+  const _origImgToObject=fabric.Image.prototype.toObject;
+  fabric.Image.prototype.toObject=function(propertiesToInclude){
+    const obj=_origImgToObject.call(this,propertiesToInclude);
+    if(this.__assetKey)obj.src='mbasset:'+this.__assetKey;
+    return obj;
+  };
+  fabric.Image.prototype.__mbpToObjectPatched=true;
+}
 
 function canvasJSON(){return cv.toJSON(FABRIC_CUSTOM_PROPS);}
 function objectJSON(obj){return obj.toJSON(FABRIC_CUSTOM_PROPS);}

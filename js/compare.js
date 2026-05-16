@@ -560,6 +560,7 @@ function addBoardObject(o,layerId){
   o.__id=o.__id||genId();
   applyObjectControls(o);
   o.set({selectable:true,evented:true,hasControls:true,hasBorders:true});
+  if(o.type==='image')registerImageAssetFromObject(o).catch(()=>{});
   assignToLayer(o,layerId);
   cv.add(o);
   return o;
@@ -592,6 +593,7 @@ function addBoardImage(src,left,top,maxW,maxH,layerId){
         objectCaching:false,
         noScaleCache:true,
       });
+      if(typeof src==='string'&&src.startsWith('data:image/'))registerImageAssetFromObject(img).catch(()=>{});
       addBoardObject(img,layerId);
       resolve(img);
     });
@@ -723,4 +725,3 @@ function placeProjectPalette(paletteId){
   const group=new fabric.Group(items,{left:cv.width/2,top:cv.height/2,originX:'center',originY:'center',objectCaching:false,noScaleCache:true});
   addObj(group);
 }
-

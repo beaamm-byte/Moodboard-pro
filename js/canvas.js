@@ -581,4 +581,207 @@ function groupSelectedLayers(){if(selectedLayerIds.size<2)return toast('Ctrl/Shi
 function ungroupLayer(){const sel=layers.find(l=>selectedLayerIds.has(l.id));if(!sel)return toast('Select a layer first');if(sel.fabricIds.length<2)return toast('Only 1 object in this layer');const idx=layers.indexOf(sel);const newLayers=[];cv.getObjects().filter(o=>o.__lid===sel.id).forEach((o,i)=>{const nid=genLayerId();const nl={id:nid,name:sel.name+' '+(i+1),visible:true,fabricIds:[o.__id]};o.__lid=nid;newLayers.push(nl);});layers.splice(idx,1,...newLayers);activeLayerId=newLayers[0]?.id||activeLayerId;selectedLayerIds=new Set(newLayers.map(l=>l.id));renderLayers();commitCanvasChange({persistDelay:500});toast('Split into '+newLayers.length+' layers');}
 function deleteSelectedLayers(){if(!selectedLayerIds.size)return toast('Select layers first');if(layers.length<=selectedLayerIds.size)return toast('Cannot delete all layers');[...selectedLayerIds].forEach(id=>deleteLayer(id,null));}
 
+function initCanvas(){
+  const cw=document.getElementById('cw');
+  cv=new fabric.Canvas('c',{
+    width:cw.clientWidth,height:cw.clientHeight,
+    backgroundColor:null,preserveObjectStacking:true,
+    selection:true,selectionColor:'rgba(200,16,46,0.07)',
+    selectionBorderColor:'#C8102E',selectionLineWidth:1,
+    allowTouchScrolling:false,
+    enableRetinaScaling:true,
+  });
+  cv.backgroundColor=null;
+  cv.lowerCanvasEl.style.background='transparent';
+  cv.upperCanvasEl.style.touchAction='none';
+  cv.lowerCanvasEl.style.touchAction='none';
+  updBrush();
+  cv.on('object:added',onMod);
+  cv.on('object:modified',()=>commitCanvasChange({historyDelay:250,persistDelay:700}));
+  cv.on('object:removed',onMod);
+  cv.on('path:created',onPathCreated);
+  let _propDebounce=null;
+  const debouncedShowProp=()=>{
+    clearTimeout(_propDebounce);
+    _propDebounce=setTimeout(()=>{ propTarget=cv.getActiveObject(); showPropPanel(); },120);
+  };
+  cv.on('selection:created',()=>{ propTarget=cv.getActiveObject(); syncLayerSelectionFromCanvas(); debouncedShowProp(); });
+  cv.on('selection:updated',()=>{ propTarget=cv.getActiveObject(); syncLayerSelectionFromCanvas(); debouncedShowProp(); });
+  cv.on('selection:cleared',()=>{ clearTimeout(_propDebounce); renderLayers(); if(!propPinned)hidePropPanel(); });
+  cv.on('mouse:down',evDown);
+  cv.on('mouse:move',evMove);
+  cv.on('mouse:up',evUp);
+  cv.on('mouse:wheel',evWheel);
+  cv.on('after:render',()=>{renderRulers();renderGuideLayer();});
+  cv.wrapperEl.addEventListener('contextmenu',e=>{
+    e.preventDefault();
+    if(tool==='draw'){positionDrawControls(e.clientX,e.clientY);return;}
+    openCtx(e.clientX,e.clientY);
+  });
+  document.addEventListener('mousedown',e=>{if(!e.target.closest('#ctxm'))closeCtx();});
+  const cwEl=document.getElementById('cw');
+  cwEl.addEventListener('dragover',e=>{e.preventDefault();document.getElementById('drop-hl').classList.add('on');});
+  cwEl.addEventListener('dragleave',()=>document.getElementById('drop-hl').classList.remove('on'));
+  cwEl.addEventListener('drop',evDrop);
+  document.getElementById('ruler-top')?.addEventListener('pointerdown',e=>startGuideDrag('x',e));
+  document.getElementById('ruler-left')?.addEventListener('pointerdown',e=>startGuideDrag('y',e));
+  document.addEventListener('paste',evPaste);
+  document.addEventListener('keydown',evKey);
+  window.addEventListener('resize',()=>{ fitEditorCanvas(); });
+  syncRulerMode();
+}
+
+function setTool(t){
+  tool=t;
+  ['select','draw','pan'].forEach(id=>{const el=document.getElementById('tool-'+id);if(el)el.classList.toggle('active',id===t);});
+  const dc=document.getElementById('draw-controls');
+  dc?.classList.toggle('on',t==='draw');
+  if(t==='draw'){positionDrawControls();cv.isDrawingMode=true;cv.selection=false;cv.defaultCursor='crosshair';cv.getObjects().forEach(o=>{o.selectable=false;o.evented=false;});}
+  else if(t==='pan'){dc?.classList.remove('on');cv.isDrawingMode=false;cv.selection=false;cv.defaultCursor='grab';cv.getObjects().forEach(o=>{o.selectable=false;o.evented=false;});}
+  else{dc?.classList.remove('on');cv.isDrawingMode=false;cv.selection=true;cv.defaultCursor='default';cv.hoverCursor='move';applyLayerStateToObjects();}
+  cv.renderAll();
+}
+
+function initDrawControls(){
+  const btn=document.getElementById('tool-draw');
+  const dc=document.getElementById('draw-controls');
+  if(!btn||!dc)return;
+  btn.addEventListener('contextmenu',e=>{e.preventDefault();setTool('draw');positionDrawControls(e.clientX,e.clientY);});
+  dc.addEventListener('pointerdown',e=>e.stopPropagation());
+  dc.addEventListener('click',e=>e.stopPropagation());
+  document.addEventListener('click',e=>{
+    if(tool==='draw')return;
+    if(!e.target.closest('#draw-controls'))dc.classList.remove('on');
+  });
+  window.addEventListener('resize',()=>{if(dc.classList.contains('on'))positionDrawControls();});
+}
+
+function positionDrawControls(x=null,y=null){
+  const dc=document.getElementById('draw-controls'),btn=document.getElementById('tool-draw');
+  if(!dc||!btn)return;
+  if(x==null||y==null){
+    const r=btn.getBoundingClientRect();
+    x=r.left;
+    y=r.bottom+6;
+  }
+  dc.style.left=Math.min(Math.max(8,x),window.innerWidth-dc.offsetWidth-8)+'px';
+  dc.style.top=Math.min(Math.max(8,y),window.innerHeight-dc.offsetHeight-8)+'px';
+  dc.classList.add('on');
+}
+
+function updBrush(){
+  const sz=+document.getElementById('brush-sz').value,col=document.getElementById('brush-col').value;
+  document.getElementById('bval').textContent=sz;
+  if(!cv)return;
+  if(!cv.freeDrawingBrush)cv.freeDrawingBrush=new fabric.PencilBrush(cv);
+  cv.freeDrawingBrush.width=sz;cv.freeDrawingBrush.color=col;
+}
+
+function applyObjectControls(o){
+  if(!o)return;
+  o.set({
+    borderColor:'#C8102E',
+    cornerColor:'#C8102E',
+    cornerStrokeColor:'#ffffff',
+    editingBorderColor:'#C8102E',
+    transparentCorners:false,
+    cornerSize:10,
+  });
+}
+
+function addObj(o){
+  ensureDefaultLayer();
+  const activeLayer=getActiveLayer();
+  if(activeLayer?.locked){
+    const openLayer=layers.find(l=>!l.locked&&l.visible!==false);
+    if(openLayer)activeLayerId=openLayer.id;
+    else return toast('Unlock a layer before adding objects');
+  }
+  o.__id=o.__id||genId();
+  applyObjectControls(o);
+  o.set({selectable:true,evented:true,hasControls:true,hasBorders:true});
+  if(o.type==='image')registerImageAssetFromObject(o).catch(()=>{});
+  assignToLayer(o,activeLayerId);cv.add(o);rebuildCanvasZOrder();
+  setTool('select');cv.setActiveObject(o);cv.requestRenderAll();
+  commitCanvasChange({persistDelay:500});
+}
+
+function normalizeTextBox(o){
+  if(!o||!['i-text','text','textbox'].includes(o.type))return;
+  if(o.isEditing)return;
+  applyObjectControls(o);
+  o.set({originX:'left',originY:'top',padding:8,splitByGrapheme:false,objectCaching:false,noScaleCache:true});
+  o.initDimensions&&o.initDimensions();
+  o.setCoords();
+  cv?.requestRenderAll();
+}
+
+function addText(){
+  const txt=new fabric.Textbox('Double-click to edit',{
+    left:cv.width/2-145,
+    top:cv.height/2-22,
+    width:290,
+    fontFamily:'Syne',
+    fontSize:24,
+    fill:'#111827',
+    fontWeight:'700',
+    lineHeight:1.18,
+    textAlign:'left',
+    editingBorderColor:'#C8102E',
+    cornerColor:'#C8102E',
+    borderColor:'#C8102E',
+  });
+  normalizeTextBox(txt);
+  txt.on('editing:exited',()=>{normalizeTextBox(txt);commitCanvasChange({historyDelay:200,persistDelay:600});});
+  addObj(txt);
+  if(document.fonts?.ready){
+    document.fonts.ready.then(()=>{normalizeTextBox(txt);commitCanvasChange({historyDelay:200,persistDelay:600});});
+  }else{
+    setTimeout(()=>normalizeTextBox(txt),250);
+  }
+}
+
+function addSticky(){
+  const bg=STICKY_PALS[Math.floor(Math.random()*STICKY_PALS.length)];
+  const sticky=createStickyGroup(cv.width/2, cv.height/2, bg, 'Your note...');
+  attachStickyDblClick(sticky,bg);
+  addObj(sticky);
+  return sticky;
+}
+
+function createStickyGroup(left, top, bg, text, opts={}){
+  const noteW=opts.noteW||STICKY_W, noteH=opts.noteH||STICKY_H, pad=opts.pad||STICKY_PAD;
+  const r=new fabric.Rect({
+    width:noteW, height:noteH, fill:bg, rx:6, ry:6,
+    shadow:new fabric.Shadow({color:'rgba(0,0,0,0.12)',blur:12,offsetX:2,offsetY:4}),
+    originX:'center', originY:'center', left:0, top:0,
+  });
+  const t=new fabric.Textbox(text||'Your note...',{
+    width:noteW-pad*2,
+    fontSize:13, fontFamily:'DM Mono', fill:'#374151', editable:true,
+    splitByGrapheme:false, breakWords:true, originX:'left', originY:'top',
+    left:-(noteW/2)+pad, top:-(noteH/2)+pad,
+  });
+  const g=new fabric.Group([r,t],{
+    left, top, originX:'center', originY:'center', subTargetCheck:true,
+    _isSticky:true, _stickyColor:bg,
+  });
+  g.setControlsVisibility({mtr:true});
+  g._stickyText=t;
+  return g;
+}
+
+function attachStickyDblClick(grp,bg){
+  if(!grp||grp.__stickyHooked)return;
+  grp.__stickyHooked=true;
+  grp.on('mousedblclick',()=>{
+    const txt=grp.getObjects?.().find(o=>o.type==='textbox'||o.type==='i-text'||o.type==='text');
+    if(!txt)return;
+    cv.setActiveObject(txt);
+    cv.requestRenderAll();
+    txt.enterEditing?.();
+    txt.selectAll?.();
+  });
+}
+
 // -
