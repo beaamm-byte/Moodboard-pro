@@ -162,7 +162,8 @@ function switchCv(pid,cid){
       normalizeManualGuides();
       if(!layers.length)newLayer('Layer 1');
       histLock=true;
-      cv.loadFromJSON(d.canvas||d,()=>{
+      const canvasData=normalizeAssetRefs(d.canvas||d);
+      cv.loadFromJSON(canvasData,()=>{
         if(loadSeq!==_switchLoadSeq)return;
         histLock=false;
         normalizeLayerMembership();
@@ -183,6 +184,7 @@ function switchCv(pid,cid){
         if(zlbl)zlbl.textContent=Math.round(cv.getZoom()*100)+'%';
         fitEditorCanvas();
         cv.renderAll();saveH();renderLayers();updateStatus();
+        migrateCanvasImageAssets()?.then(()=>saveLS());
         if(document.body.classList.contains('zen-mode')) renderZenStrip();
         finishLoad();
       });

@@ -1,25 +1,43 @@
-function doExport(scope='all'){
+let _importMode='workspace';
+
+async function doExport(scope='all'){
   autoSave();
   let data, filename;
+  let exportProjects=projects;
   if(scope==='project'&&curProj){
     const proj={};
     proj[curProj]=projects[curProj];
-    data={v:6,projects:proj};
+    exportProjects=proj;
+    data={v:6,scope:'project',projects:proj,projectId:curProj};
     filename=(projects[curProj].name||'project').replace(/[^a-z0-9]/gi,'_')+'.mb';
   } else {
-    data={v:6,projects};
+    data={v:6,scope:'workspace',projects};
     filename='moodboard-workspace.mb';
   }
+  try{
+    data.assets=await buildAssetBundleForProjects(exportProjects);
+  }catch(e){}
   const raw=JSON.stringify(data);
   const encoded='mbpro|'+btoa(unescape(encodeURIComponent(raw)));
   dlBlob(new Blob([encoded],{type:'application/octet-stream'}),filename);
   toast('Exported: '+filename);
 }
-function doImport(){document.getElementById('imp-in').click();}
-function handleImport(e){
+function doImport(){
+  _importMode='workspace';
+  openM('m-import');
+}
+function chooseImportMode(mode){
+  _importMode=mode==='project'?'project':'workspace';
+  const inp=document.getElementById('imp-in');
+  if(inp)inp.dataset.importMode=_importMode;
+  closeM('m-import');
+  document.getElementById('imp-in').click();
+}
+async function handleImport(e){
   const f=e.target.files[0];if(!f)return;
+  const importMode=e.target.dataset.importMode||_importMode||'workspace';
   const rd=new FileReader();
-  rd.onload=ev=>{
+  rd.onload=async ev=>{
     try{
       let raw=ev.target.result.trim();
       // Decode .mb format (Base64 with prefix)
@@ -28,16 +46,62 @@ function handleImport(e){
       }
       const d=JSON.parse(raw);
       if(!d.projects)return toast('Invalid .mb file');
-      customConfirm('This will replace ALL current projects. Make sure you have a backup first.', ()=>{
-        projects=d.projects; hist={}; saveLS();
-        curProj=null; curCv=null;
-        renderHome(); showScreen('home-screen');
-        toast('Workspace imported!');
-      }, 'Replace all projects?', 'Replace', true);
+      const importedProjects=d.projects||{};
+      if(d.assets)await preloadImageAssetBundle(d.assets);
+      if(importMode==='workspace'){
+        customConfirm('This will replace ALL current projects. Make sure you have a backup first.', async ()=>{
+          projects=cloneImportedProjects(importedProjects,false);
+          hist={};
+          curProj=null; curCv=null;
+          renderHome(); showScreen('home-screen');
+          await saveLS();
+          compactWorkspaceImageAssets(projects).then(()=>saveLS()).catch(()=>{});
+          toast('Workspace imported!');
+        }, 'Replace all projects?', 'Replace', true);
+        return;
+      }
+      const merged=cloneImportedProjects(importedProjects,true);
+      Object.entries(merged).forEach(([pid,proj])=>{
+        projects[pid]=proj;
+      });
+      hist={};
+      renderHome();
+      showScreen('home-screen');
+      await saveLS();
+      compactWorkspaceImageAssets(merged).then(()=>saveLS()).catch(()=>{});
+      toast('Project imported and added to the workspace');
     }catch(err){toast('Could not read file - make sure it is a valid .mb file');}
+    finally{
+      e.target.dataset.importMode='';
+      _importMode='workspace';
+    }
   };
   rd.readAsText(f);e.target.value='';
 }
+
+function cloneImportedProjects(source, remapIds=true){
+  const out={};
+  const projectIdMap={};
+  const canvasIdMap={};
+  const sourceEntries=Object.entries(source||{});
+  sourceEntries.forEach(([oldPid,proj])=>{
+    const pid=remapIds?genId():oldPid;
+    projectIdMap[oldPid]=pid;
+    const cloned=JSON.parse(JSON.stringify(proj||{}));
+    cloned.canvases=cloned.canvases||{};
+    const newCanvases={};
+    Object.entries(cloned.canvases).forEach(([oldCid,cvData])=>{
+      const cid=remapIds?genId():oldCid;
+      canvasIdMap[oldCid]=cid;
+      newCanvases[cid]=cvData;
+    });
+    cloned.canvases=newCanvases;
+    cloned.deleted=false;
+    out[pid]=cloned;
+  });
+  return out;
+}
+
 async function expPDF(scope='current'){
   const {jsPDF}=window.jspdf;
 
@@ -97,7 +161,7 @@ function renderCanvasToDataUrl(cvData){
     tmpEl.width=cv.width; tmpEl.height=cv.height;
     const tmp=new fabric.Canvas(tmpEl,{backgroundColor:'#ffffff',preserveObjectStacking:true,enableRetinaScaling:false});
     const d=typeof cvData.json==='string'?JSON.parse(cvData.json):cvData.json;
-    tmp.loadFromJSON(d.canvas||d,()=>{
+    tmp.loadFromJSON(normalizeAssetRefs(d.canvas||d),()=>{
       tmp.backgroundColor='#ffffff';
       tmp.renderAll();
       const url=tmp.toDataURL({format:'jpeg',multiplier:1.5,quality:.95});
