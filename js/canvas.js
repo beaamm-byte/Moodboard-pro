@@ -628,6 +628,7 @@ function initCanvas(){
   document.addEventListener('paste',evPaste);
   document.addEventListener('keydown',evKey);
   window.addEventListener('resize',()=>{ fitEditorCanvas(); });
+  syncRulerMode();
 }
 
 function setTool(t){
