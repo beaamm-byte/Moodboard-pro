@@ -5,35 +5,34 @@ Workspace: `D:\PROYECTOS\CODE\Moodboard-pro`
 ## Status
 
 - Main app is the comparator-enabled `index.html`.
-- Root `index.html` stays as backup while we refactor.
-- Working copy lives in `work/index.html` and now loads `work/styles.css`.
-- Fabric.js canvas editor with localStorage persistence.
+- Root `index.html` is the active modular entrypoint.
+- The app is split across `index.html`, `styles.css`, and `js/*.js`.
+- Fabric.js canvas editor with IndexedDB-backed workspace state plus localStorage fallback.
 - Local preview server: `http://localhost:8080/index.html`.
 - The comparator screen is part of the current branch and should be treated as first-class app flow.
 
 ## Current Focus
 
-- Root `index.html` is the backup copy.
-- Refactor work continues in `work/index.html`.
-- First split already done:
-  - `work/styles.css`
-  - `work/js/state.js`
-- Second split already done:
-  - `work/js/canvas.js`
-- Third split already done:
-  - `work/js/ui.js`
-- Fourth split already done:
-  - `work/js/compare.js`
-  - `work/js/export.js`
-- Fifth split already done:
-  - `work/js/editor-tail.js`
+- Root files are the active working copy.
+- Current branch is `refactor/modular`.
 - Keep extracting by low-risk slices, then remove duplicate overrides once the structure is in place.
+- Preferred Codex model for future sessions: `gpt-5.5`.
 
 ## Working Memory
 
 - `autoSave` preserves viewport/pan/zoom.
 - `switchCv` restores the last project/canvas.
 - Export menu is a dropdown in English.
+- Image storage is moving out of `localStorage` into IndexedDB-backed assets so image-heavy projects do not hit quota as fast.
+- `.mb` export now bundles referenced image assets so project/workspace exports remain portable.
+- `Import > Project` now only compacts the imported project bundle instead of scanning the entire workspace.
+- Workspace persistence now prefers IndexedDB so project lists remain available even when localStorage gets tight.
+- Workspace load now mirrors back to `localStorage` after an IndexedDB read, so subsequent reloads do not start blank.
+- `Import > Project` now returns to the home screen after import so the newly added project is visible immediately.
+- The root `index.html` has been trimmed further; the main home/project/editor duplicates now live in `js/ui.js`, `js/state.js`, `js/canvas.js`, and `js/editor-tail.js`.
+- The live search dropdown logic now lives only in `js/ui.js`; the duplicate block was removed from the root HTML.
+- `renderPropContent` now lives only in `js/editor-tail.js`; the duplicate version was removed from the root HTML.
+- The properties panel helpers now live in `js/properties.js`; the root HTML no longer carries that block.
 - Sticky notes, polaroid captions, and cross-canvas copy/paste were fixed.
 - Project switching now hides the previous canvas while the new one loads, so the last opened project does not flash briefly.
 - Layers panel has:
@@ -46,6 +45,10 @@ Workspace: `D:\PROYECTOS\CODE\Moodboard-pro`
   - editable shared palette;
   - `Convertir en board` flow into `Visual Direction`;
   - project palettes in the editor sidebar.
+- Rulers/manual guides are implemented and currently reported as working well.
+- Rulers are enabled by default for projects.
+- The `Rulers` control now sits with the editor tools next to `Select`, `Draw`, and `Pan`.
+- The redundant topbar `Frame` button next to Zen Mode was removed; image framing remains in the properties panel.
 
 ## Important Open Issue
 
@@ -55,6 +58,11 @@ Workspace: `D:\PROYECTOS\CODE\Moodboard-pro`
 ## Next Steps
 
 1. Verify comparator-generated boards survive reload and re-open correctly.
-2. Verify smart guides.
-3. Add rulers and manual guides.
+2. Re-check smart guides/rulers behavior after more real use, especially pan/zoom and guide persistence.
+3. Finish cleanup of legacy duplicate blocks and stale mojibake strings in `index.html`.
 4. Keep the export menu compact.
+
+## Pause Point
+
+- As of 2026-05-16, user reports the latest changes appear to work well and is ready to switch to another project.
+- Git status at pause: only `PROJECT_NOTES.md` is modified from this notes update. The rulers/defaults UI changes are already present in `HEAD`.

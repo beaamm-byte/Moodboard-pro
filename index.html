@@ -12,7 +12,7 @@
 </head>
 <body>
 
-<!- - TOPBAR (always visible) - ->
+<!-- TOPBAR (always visible) -->
 <div id="topbar">
   <div class="logo" onclick="goHome()" title="Back to Projects">
     <div class="logo-dot" style="width:9px;height:9px;border-radius:50%;background:var(--accent);flex-shrink:0;"></div>
@@ -41,6 +41,7 @@
     <button class="btn active" id="tool-select" onclick="setTool('select')" title="Select · V"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/></svg> Select</button>
     <button class="btn" id="tool-draw" onclick="setTool('draw')" title="Draw · D"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg> Draw</button>
     <button class="btn" id="tool-pan" onclick="setTool('pan')" title="Pan · Space"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0"/><path d="M14 10V4a2 2 0 0 0-4 0"/><path d="M10 10.5V6a2 2 0 0 0-4 0"/><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg> Pan</button>
+    <button class="btn" id="rulers-btn" onclick="toggleRulers()" title="Rulers · R"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 6v4M11 6v3M15 6v4M19 6v3"/><path d="M7 18v-4M11 18v-3M15 18v-4M19 18v-3"/></svg> Rulers</button>
     <div id="draw-controls">
       <label>SIZE</label>
       <input type="range" id="brush-sz" min="1" max="60" value="8" oninput="updBrush()">
@@ -61,12 +62,10 @@
     <div id="zlbl">100%</div>
     <button class="btn" onclick="zIn()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></button>
     <button class="btn" onclick="zReset()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
-    <button class="btn" id="rulers-btn" onclick="toggleRulers()" title="Rulers · R"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 6v4M11 6v3M15 6v4M19 6v3"/><path d="M7 18v-4M11 18v-3M15 18v-4M19 18v-3"/></svg></button>
     <div class="spacer"></div>
     <button class="btn red" onclick="clearAll()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Clear</button>
-    <!- - NEW: Frame/Polaroid, Zen Mode - ->
+    <!-- Zen Mode -->
     <div class="sep"></div>
-    <button class="btn" onclick="openFrameModal()" title="Add Frame / Polaroid"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="6" y="6" width="12" height="9" rx="1"/></svg> Frame</button>
     <button class="btn" id="zen-btn" onclick="toggleZen()" title="Zen Mode (presentation)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
   </div>
   <span id="session-timer" style="display:none">00:00:00</span>
@@ -118,7 +117,7 @@
 <!-- Zen canvas switcher strip -->
 <div id="zen-cv-strip"></div>
 
-<!- - HOME SCREEN - ->
+<!-- HOME SCREEN -->
 <div class="screen active" id="home-screen">
   <div class="home-content">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
@@ -157,12 +156,11 @@
     </div>
     <!-- Tag filter bar -->
     <div class="status-filter-bar" id="status-filter-bar"></div>
-    <div class="tag-filter-bar" id="tag-filter-bar"></div>
     <div class="proj-grid" id="home-proj-grid"></div>
   </div>
 </div>
 
-<!- - EDITOR SCREEN - ->
+<!-- EDITOR SCREEN -->
 <div class="screen" id="editor-screen">
   <div id="layout">
     <!-- Left sidebar: canvases -->
@@ -247,7 +245,7 @@
   <div class="ci danger" onclick="cxDelete()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg> Delete</div>
 </div>
 
-<!- - COMPARE REFERENCES SCREEN - ->
+<!-- COMPARE REFERENCES SCREEN -->
 <div class="screen" id="compare-screen">
   <div id="compare-shell">
     <div class="compare-stage">
@@ -359,7 +357,7 @@
     </div>
   </div>
 </div>
-<!- - CUSTOM CONFIRM DIALOG - ->
+<!-- CUSTOM CONFIRM DIALOG -->
 <div id="confirm-overlay">
   <div id="confirm-box">
     <h4 id="confirm-title">¿Estás segura?</h4>
@@ -371,7 +369,7 @@
   </div>
 </div>
 
-<!- - GUIDE MODAL - ->
+<!-- GUIDE MODAL -->
 <div id="guide-overlay">
   <div id="guide-box">
     <div id="guide-header">
@@ -576,7 +574,7 @@
   </div>
 </div>
 
-<!- - FEEDBACK BUTTON + MODAL - ->
+<!-- FEEDBACK BUTTON + MODAL -->
 <button id="feedback-btn" onclick="openFeedback()" title="Feedback & Sugerencias" style="position:fixed;bottom:20px;right:20px;z-index:800;width:42px;height:42px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 4px 16px rgba(200,16,46,.4);transition:transform .15s;font-size:22px;font-weight:700;font-family:'Space Grotesk',sans-serif;line-height:1;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">?</button>
 
 <div class="mbg" id="m-feedback">
@@ -612,9 +610,26 @@
 </div>
 
 <input type="file" id="imp-in" accept=".mb" style="display:none" onchange="handleImport(event)">
+<div class="mbg" id="m-import">
+  <div class="mbox" style="max-width:380px;">
+    <h3>Import</h3>
+    <p style="font-size:12px;color:var(--txt3);margin-bottom:14px;">Choose how you want to import the file.</p>
+    <div class="mrow" style="margin-bottom:14px;">
+      <button class="mbtn sec" style="flex:1" onclick="chooseImportMode('workspace')">
+        Workspace
+      </button>
+      <button class="mbtn sec" style="flex:1" onclick="chooseImportMode('project')">
+        Project
+      </button>
+    </div>
+    <div class="mrow">
+      <button class="mbtn sec" onclick="closeM('m-import')">Cancel</button>
+    </div>
+  </div>
+</div>
 <div id="toast"></div>
 
-<!- - WELCOME POPUP - ->
+<!-- WELCOME POPUP -->
 <div id="welcome-overlay" style="display:none;">
   <div id="welcome-box">
     <div id="welcome-header">
@@ -640,103 +655,50 @@
 
 <script src="js/state.js"></script>
 <script>
-function uiIcon(name,size=18){
-  const icons={
-    folder:'<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
-    trash:'<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
-    book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/>',
-    info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
-    tag:'<path d="M20.59 13.41 11 3H4v7l9.59 9.59a2 2 0 0 0 2.82 0l4.18-4.18a2 2 0 0 0 0-2.82Z"/><path d="M7 7h.01"/>',
-    save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/>',
-    image:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
-    text:'<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>',
-    note:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
-    draw:'<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/>',
-    frame:'<rect x="3" y="3" width="18" height="18" rx="2"/><rect x="6" y="6" width="12" height="9" rx="1"/>',
-    crop:'<polyline points="6 2 6 6 2 6"/><polyline points="18 2 18 6 22 6"/><polyline points="6 22 6 18 2 18"/><polyline points="18 22 18 18 22 18"/>',
-    contrast:'<circle cx="12" cy="12" r="9"/><path d="M12 3v18"/>',
-    palette:'<circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2a10 10 0 0 0 0 20h1.5a2.5 2.5 0 0 0 0-5H12a2 2 0 0 1 0-4h2a8 8 0 0 0 0-16z"/>',
-    layers:'<path d="m12 2 10 5-10 5L2 7l10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>',
-    edit:'<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
-    lock:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
-    group:'<rect x="2" y="2" width="8" height="8"/><rect x="14" y="14" width="8" height="8"/><path d="M10 6h4"/><path d="M18 10v4"/>',
-    keyboard:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M8 13h8"/>',
-    eye:'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
-    mouse:'<rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 7v4"/>',
-    pin:'<path d="M12 17v5"/><path d="M5 17h14"/><path d="m7 10 5-7 5 7"/><path d="M8 10h8v7H8z"/>',
-    align:'<path d="M4 6h16"/><path d="M7 12h10"/><path d="M4 18h16"/>',
-    ruler:'<rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 7v4M11 7v3M15 7v4M19 7v3"/><path d="M7 17v-3M11 17v-2M15 17v-3M19 17v-2"/>',
-    spark:'<path d="m12 2 1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2Z"/>',
-    pen:'<path d="m16 3 5 5L8 21H3v-5L16 3z"/>',
-    bolt:'<path d="m13 2-10 12h9l-1 8 10-12h-9l1-8z"/>',
-  };
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icons[name]||icons.info}</svg>`;
-}
-
-function replaceDecorativeEmojiIcons(){
-  const setIcon=(el,name,size=18)=>{if(el)el.innerHTML=uiIcon(name,size);};
-  const tabProjects=document.getElementById('tab-projects');
-  if(tabProjects)tabProjects.innerHTML=uiIcon('folder',13)+' Projects';
-  const tabTrash=document.getElementById('tab-trash');
-  if(tabTrash)tabTrash.innerHTML=uiIcon('trash',13)+' Trash';
-  const guideTab=document.getElementById('gtab-guide');
-  if(guideTab)guideTab.innerHTML=uiIcon('book',13)+' Guía de uso';
-  const aboutTab=document.getElementById('gtab-about');
-  if(aboutTab)aboutTab.innerHTML=uiIcon('spark',13)+' Acerca de';
-
-  const sectionIcons=['folder','image','layers','keyboard','spark'];
-  document.querySelectorAll('.guide-section-title').forEach((el,i)=>{
-    const clean=['Proyectos & Canvas','Herramientas de diseño','Capas & Organización','Atajos de teclado','Consejos pro'][i]||el.textContent.replace(/[^\wÀ-ÿ& ]/g,'').trim();
-    el.innerHTML=uiIcon(sectionIcons[i]||'info',14)+`<span>${clean}</span>`;
-  });
-
-  const cardIconByTitle={
-    'Crear proyectos':'folder','Etiquetas (Tags)':'tag','Papelera':'trash','Guardado automático':'save',
-    'Añadir imágenes':'image','Texto':'text','Notas (Sticky Notes)':'note','Dibujar':'draw','Marco / Polaroid':'frame',
-    'Recortar imagen':'crop','Blanco y negro':'contrast','Extraer colores':'palette','Panel de capas':'layers',
-    'Renombrar capas':'edit','Bloquear capa':'lock','Capas anidadas':'layers','Navegación':'keyboard','Edición':'keyboard',
-    'Historial':'keyboard','Modo Zen':'eye','Clic derecho':'mouse','Panel de propiedades':'pin','Reglas y guías':'ruler',
-    'Comparador visual':'palette','Export / Import .mb':'save'
-  };
-  document.querySelectorAll('.guide-card').forEach(card=>{
-    const title=card.querySelector('.guide-card-title')?.textContent.trim();
-    setIcon(card.querySelector('.guide-card-icon'),cardIconByTitle[title]||'info',22);
-  });
-
-  const aboutPanel=document.getElementById('guide-about-panel');
-  const aboutHero=aboutPanel?.querySelector('div[style*="font-size:32px"]');
-  setIcon(aboutHero,'spark',28);
-  const aboutCards=aboutPanel?.querySelectorAll('div[style*="background:var(--surface2)"]');
-  ['palette','folder','pen','bolt'].forEach((name,i)=>setIcon(aboutCards?.[i]?.querySelector('div'),name,20));
-
-  document.querySelectorAll('.wf-icon').forEach((el,i)=>setIcon(el,['palette','folder','eye','bolt'][i]||'info',18));
-}
-
 // -
 // BOOT
 // -
 window.addEventListener('DOMContentLoaded',()=>{
-  loadLS();
-  if(!Object.keys(projects).length){
-    const pid=createProj('My First Project'); createCv(pid,'Board 1');
-  }
+  initImageAssetStore?.().catch(()=>{});
+  const workspaceReady=loadLS();
   initCanvas();
   setInterval(autoSave,8000);
   makePropDraggable();
   initDrawControls();
   replaceDecorativeEmojiIcons();
+  renderHome();
+  showScreen('home-screen');
 
-  // Restore last open project/canvas after reload
-  // Use setTimeout to ensure Fabric canvas is fully initialized first
-  setTimeout(()=>{
+  workspaceReady.then(fromWorkspace=>{
+    if(!Object.keys(projects).length){
+      const pid=createProj('My First Project'); createCv(pid,'Board 1');
+    } else if(!fromWorkspace){
+      setTimeout(()=>{compactWorkspaceImageAssets().then(changed=>{if(changed)saveLS();}).catch(()=>{});},0);
+    }
     const lastProj=localStorage.getItem('mbp_last_proj');
     const lastCv=localStorage.getItem('mbp_last_cv');
     if(lastProj&&projects[lastProj]&&lastCv&&projects[lastProj].canvases[lastCv]){
       openEditor(lastProj,lastCv);
-    } else {
-      renderHome();
+      return;
     }
-  },50);
+    renderHome();
+    showScreen('home-screen');
+  }).catch(()=>{
+    if(!Object.keys(projects).length){
+      const pid=createProj('My First Project'); createCv(pid,'Board 1');
+    }
+    renderHome();
+    showScreen('home-screen');
+  });
+
+  loadWorkspaceState?.().then(state=>{
+    if(state&&state.projects&&Object.keys(state.projects).length){
+      projects=state.projects;
+      try{ localStorage.setItem('mbp6',JSON.stringify(projects)); }catch(e){}
+      renderHome();
+      showScreen('home-screen');
+    }
+  }).catch(()=>{});
 });
 
 function initCanvas(){
@@ -815,181 +777,8 @@ function goHome(){
 </script>
 <script src="js/compare.js"></script>
 <script>
-function openEditor(pid,cid){
-  showScreen('editor-screen');
-  switchCv(pid,cid);
-  // Resize canvas after screen switch
-  setTimeout(()=>{
-    fitEditorCanvas();
-  },50);
-}
-
-// -
-// HOME SCREEN
-// -
-function renderHome(){
-  const grid=document.getElementById('home-proj-grid');
-  grid.innerHTML='';
-  Object.entries(projects).forEach(([pid,proj])=>{
-    const card=document.createElement('div');
-    card.className='proj-card';
-    const thumbBg=proj.color+'22';
-    const firstCvId=Object.keys(proj.canvases)[0];
-    const cvCount=Object.keys(proj.canvases).length;
-    // Generate thumbnail from stored canvas data
-    const thumbHtml=buildThumbHtml(pid,firstCvId,proj.color);
-    card.innerHTML=`
-      <div class="proj-card-thumb" style="background:${thumbBg}">${thumbHtml}</div>
-      <div class="proj-card-body">
-        <div class="proj-card-name">${proj.name}</div>
-        <div class="proj-card-meta">${cvCount} canvas${cvCount!==1?'es':''}</div>
-      </div>
-      <div class="proj-card-acts">
-        <button class="proj-card-act" onclick="renameProj('${pid}',event)" title="Rename">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        </button>
-        <button class="proj-card-act" onclick="delProjHome('${pid}',event)" title="Delete">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>`;
-    card.onclick=()=>openEditor(pid,firstCvId);
-    grid.appendChild(card);
-  });
-
-  // New project card
-  const newCard=document.createElement('div');
-  newCard.className='proj-card proj-card-new';
-  newCard.innerHTML=`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>New Project</span>`;
-  newCard.onclick=()=>newProjHome();
-  grid.appendChild(newCard);
-}
-
-function buildThumbHtml(pid,cid,color){
-  try{
-    const cvData=projects[pid]?.canvases[cid];
-    if(cvData?.json){
-      const d=typeof cvData.json==='string'?JSON.parse(cvData.json):cvData.json;
-      const objCount=(d.canvas?.objects||d.objects||[]).length;
-      return `<div style="font-size:12px;color:${color};font-weight:700;font-family:'DM Mono',monospace;opacity:.6">${objCount} object${objCount!==1?'s':''}</div>`;
-    }
-  }catch(e){}
-  return `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>`;
-}
-
-function newProjHome(){
-  document.getElementById('m-proj-t').textContent='New Project';
-  document.getElementById('m-proj-n').value='Project '+(Object.keys(projects).length+1);
-  renamingProjId=null; openM('m-proj');
-  setTimeout(()=>document.getElementById('m-proj-n').select(),40);
-}
-function renameProj(id,e){
-  e.stopPropagation(); renamingProjId=id;
-  document.getElementById('m-proj-t').textContent='Rename Project';
-  document.getElementById('m-proj-n').value=projects[id].name;
-  openM('m-proj'); setTimeout(()=>document.getElementById('m-proj-n').select(),40);
-}
-function delProjHome(id,e){
-  e.stopPropagation();
-  if(Object.keys(projects).length===1)return toast('Cannot delete the only project');
-  customConfirm(`Move "${projects[id].name}" to trash?`, ()=>{
-    projects[id].deleted=true; saveLS(); renderHome(); toast('Moved to trash');
-  }, 'Move to Trash', 'Move to Trash', true);
-}
-function confirmProj(){
-  const name=document.getElementById('m-proj-n').value.trim()||'Untitled'; closeM('m-proj');
-  if(renamingProjId){projects[renamingProjId].name=name;renamingProjId=null;saveLS();renderHome();}
-  else{const pid=createProj(name);const cid=createCv(pid,'Board 1');saveLS();renderHome();openEditor(pid,cid);}
-}
-
-// -
-// CANVAS LIST (sidebar in editor)
-// -
-function renderCvList(){
-  const list=document.getElementById('cv-list'); list.innerHTML='';
-  if(!curProj)return;
-  const proj=projects[curProj];
-  Object.entries(proj.canvases).forEach(([cid,cvData])=>{
-    const item=document.createElement('div');
-    item.className='cv-item'+(curCv===cid?' active':'');
-    item.innerHTML=`
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/></svg>
-      <div class="cv-item-name">${cvData.name}</div>
-      <div class="cv-item-acts">
-        <button class="cv-item-act" onclick="startRenCv('${curProj}','${cid}',event)" title="Rename">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        </button>
-        <button class="cv-item-act" onclick="delCv('${curProj}','${cid}',event)">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>`;
-    item.onclick=e=>{if(e.target.closest('.cv-item-acts'))return;switchCv(curProj,cid);};
-    item.addEventListener('dblclick',e=>{
-      if(e.target.closest('.cv-item-acts'))return;
-      e.preventDefault(); e.stopPropagation();
-      startRenCv(curProj,cid,{stopPropagation:()=>{}});
-    });
-    // Right-click context menu for canvas item
-    item.addEventListener('contextmenu',e=>{
-      e.preventDefault(); e.stopPropagation();
-      openCvCtx(curProj, cid, e.clientX, e.clientY);
-    });
-    list.appendChild(item);
-  });
-  const addBtn=document.createElement('button'); addBtn.className='btn-newcv';
-  addBtn.innerHTML=`<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Canvas`;
-  addBtn.onclick=()=>openNewCvModal(curProj);
-  list.appendChild(addBtn);
-}
-
-// -
-// TOOL
-// -
-function setTool(t){
-  tool=t;
-  ['select','draw','pan'].forEach(id=>{const el=document.getElementById('tool-'+id);if(el)el.classList.toggle('active',id===t);});
-  const dc=document.getElementById('draw-controls');
-  dc.classList.toggle('on',t==='draw');
-  if(t==='draw'){positionDrawControls();cv.isDrawingMode=true;cv.selection=false;cv.defaultCursor='crosshair';cv.getObjects().forEach(o=>{o.selectable=false;o.evented=false;});}
-  else if(t==='pan'){dc.classList.remove('on');cv.isDrawingMode=false;cv.selection=false;cv.defaultCursor='grab';cv.getObjects().forEach(o=>{o.selectable=false;o.evented=false;});}
-  else{dc.classList.remove('on');cv.isDrawingMode=false;cv.selection=true;cv.defaultCursor='default';cv.hoverCursor='move';applyLayerStateToObjects();}
-  cv.renderAll();
-}
-function initDrawControls(){
-  const btn=document.getElementById('tool-draw');
-  const dc=document.getElementById('draw-controls');
-  if(!btn||!dc)return;
-  btn.addEventListener('contextmenu',e=>{e.preventDefault();setTool('draw');positionDrawControls(e.clientX,e.clientY);});
-  dc.addEventListener('pointerdown',e=>e.stopPropagation());
-  dc.addEventListener('click',e=>e.stopPropagation());
-  document.addEventListener('click',e=>{
-    if(tool==='draw')return;
-    if(!e.target.closest('#draw-controls'))dc.classList.remove('on');
-  });
-  window.addEventListener('resize',()=>{if(dc.classList.contains('on'))positionDrawControls();});
-}
-function positionDrawControls(x=null,y=null){
-  const dc=document.getElementById('draw-controls'),btn=document.getElementById('tool-draw');
-  if(!dc||!btn)return;
-  if(x==null||y==null){
-    const r=btn.getBoundingClientRect();
-    x=r.left;
-    y=r.bottom+6;
-  }
-  dc.style.left=Math.min(Math.max(8,x),window.innerWidth-dc.offsetWidth-8)+'px';
-  dc.style.top=Math.min(Math.max(8,y),window.innerHeight-dc.offsetHeight-8)+'px';
-  dc.classList.add('on');
-}
-function updBrush(){
-  const sz=+document.getElementById('brush-sz').value,col=document.getElementById('brush-col').value;
-  document.getElementById('bval').textContent=sz;
-  if(!cv)return;
-  if(!cv.freeDrawingBrush)cv.freeDrawingBrush=new fabric.PencilBrush(cv);
-  cv.freeDrawingBrush.width=sz;cv.freeDrawingBrush.color=col;
-}
-
 // -
 // LAYER SYSTEM
-// -
 </script>
 <script src="js/canvas.js"></script>
 <script>
@@ -1277,12 +1066,15 @@ function addShape(type){
 function openImgModal(){document.getElementById('m-img-url').value='';openM('m-img');}
 function addImgURL(){const u=document.getElementById('m-img-url').value.trim();if(!u)return;closeM('m-img');loadImg(u);}
 function fileChosen(e){const f=e.target.files[0];if(!f)return;closeM('m-img');const rd=new FileReader();rd.onload=ev=>loadImg(ev.target.result);rd.readAsDataURL(f);e.target.value='';}
-function loadImg(url,dx,dy){
-  fabric.Image.fromURL(url,img=>{
+async function loadImg(url,dx,dy){
+  fabric.Image.fromURL(url,async img=>{
     if(!img||!img.width)return toast('Could not load image');
     const mw=cv.width*.45,mh=cv.height*.45;
     if(img.width>mw||img.height>mh)img.scale(Math.min(mw/img.width,mh/img.height));
     img.set({left:dx??cv.width/2-img.getScaledWidth()/2,top:dy??cv.height/2-img.getScaledHeight()/2});
+    if(typeof url==='string'&&url.startsWith('data:image/')){
+      try{img.__assetKey=await putImageAsset(url);}catch(e){}
+    }
     addObj(img);
   },{crossOrigin:'anonymous'});
 }
@@ -1455,339 +1247,6 @@ function toggleBW(){
   cv.renderAll(); showPropPanel(); commitCanvasChange({historyDelay:250,persistDelay:700}); toast(hasBW?'Color restored':'B&W applied');
 }
 
-// -
-// PROPERTIES PANEL
-// -
-function hidePropPanel(){document.getElementById('prop-panel').classList.remove('on');}
-function showPropPanel(){
-  const o=cv.getActiveObject();if(!o){if(!propPinned)hidePropPanel();return;}
-  document.getElementById('prop-panel').classList.add('on');
-  renderPropContent(o);
-}
-function getEditableImageFromSelection(){
-  const o=cv.getActiveObject();
-  if(!o)return null;
-  if(o.type==='image')return o;
-  if(o._isFrame&&o.getObjects)return o.getObjects().find(x=>x.type==='image')||null;
-  return null;
-}
-function renderPropContent(o){
-  const c=document.getElementById('pp-scroll');c.innerHTML='';
-
-  // Opacity
-  addPropRow(c,'Opacity',`<input type="range" min="0" max="1" step="0.01" value="${o.opacity??1}" oninput="setProp('opacity',parseFloat(this.value));document.getElementById('pp-op-v').textContent=Math.round(this.value*100)+'%'">`,`<span id="pp-op-v">${Math.round((o.opacity??1)*100)}%</span>`);
-
-  // TEXT properties
-  if(o.type==='i-text'||o.type==='text'){
-    // Font family
-    const fontRow=document.createElement('div');fontRow.className='pp-row';
-    const curFont=o.fontFamily||'Syne';
-    fontRow.innerHTML=`<div class="pp-lbl">Font</div>
-      <select class="font-select" onchange="setPropOnTarget(this,'fontFamily',this.value)" style="font-family:${curFont}">
-        ${FONTS.map(f=>`<option value="${f.name}" style="font-family:${f.name}" ${f.name===curFont?'selected':''}>${f.label}</option>`).join('')}
-      </select>`;
-    c.appendChild(fontRow);
-    // Font size + bold/italic/underline
-    const sizeRow=document.createElement('div');sizeRow.className='pp-row';
-    sizeRow.innerHTML=`<div class="pp-lbl">Size & Style</div>
-      <div class="font-size-row">
-        <input type="number" value="${o.fontSize||22}" min="6" max="300" onchange="setProp('fontSize',+this.value)" style="width:60px">
-        <div class="font-style-row" style="flex:1">
-          <button class="fstyle-btn ${o.fontWeight==='bold'?'active':''}" onclick="toggleFontStyle('fontWeight','bold','normal',this)" title="Bold"><b>B</b></button>
-          <button class="fstyle-btn ${o.fontStyle==='italic'?'active':''}" onclick="toggleFontStyle('fontStyle','italic','normal',this)" title="Italic"><i>I</i></button>
-          <button class="fstyle-btn ${o.underline?'active':''}" onclick="toggleFontStyle('underline',true,false,this)" title="Underline"><u>U</u></button>
-        </div>
-      </div>`;
-    c.appendChild(sizeRow);
-    // Text align
-    const alignRow=document.createElement('div');alignRow.className='pp-row';
-    alignRow.innerHTML=`<div class="pp-lbl">Align</div><div class="pp-btn-row">
-      ${['left','center','right'].map(a=>`<button class="pp-btn ${(o.textAlign||'left')===a?'active':''}" onclick="setProp('textAlign','${a}')">${a[0].toUpperCase()+a.slice(1)}</button>`).join('')}
-    </div>`;
-    c.appendChild(alignRow);
-    // Text color
-    addColorRow(c,'Color',o.fill||'#111827',(col)=>{setProp('fill',col);});
-  }
-
-  // SHAPE fill + stroke
-  if(o.type==='rect'||o.type==='circle'){
-    addColorRow(c,'Fill',o.fill||'#C8102E33',(col)=>setProp('fill',col));
-    addColorRow(c,'Stroke',o.stroke||'#C8102E',(col)=>setProp('stroke',col));
-    addPropRow(c,'Stroke Width',`<input type="range" min="0" max="20" step="1" value="${o.strokeWidth??2}" oninput="setProp('strokeWidth',+this.value)">`);
-  }
-
-  // IMAGE controls
-  if(imageObj){
-    const hasBW=(imageObj.filters||[]).some(f=>f&&f.type==='Grayscale');
-    const cropAction=o._isFrame?'cropFramedImage()':'startCrop()';
-    const row=document.createElement('div');row.className='pp-row';
-    row.innerHTML=`<div class="pp-lbl">Image</div><div class="pp-btn-row">
-      <button class="pp-btn" onclick="${cropAction}">Crop</button>
-      <button class="pp-btn ${hasBW?'active':''}" onclick="toggleBW()">B&W</button>
-    </div>`;
-    c.appendChild(row);
-  }
-
-  // STICKY note color
-  if(o._isSticky){
-    const row=document.createElement('div');row.className='pp-row';
-    row.innerHTML=`<div class="pp-lbl">Note Color</div><div class="palette-grid" id="pal-sticky"></div>`;
-    c.appendChild(row);
-    const grid=row.querySelector('#pal-sticky');
-    const currentColor=o._stickyColor||STICKY_PALS[0];
-    STICKY_PALS.forEach(col=>{
-      const sw=document.createElement('div');sw.className='swatch';
-      sw.style.cssText=`background:${col};width:22px;height:22px;border-radius:4px;border:2px solid ${col===currentColor?'var(--txt)':'transparent'}`;
-      sw.onclick=()=>{
-        // Find the rect inside the group and change its fill
-        const bgRect=o.getObjects&&o.getObjects().find(x=>x.type==='rect');
-        if(bgRect){bgRect.set('fill',col);o._stickyColor=col;cv.renderAll();}
-        grid.querySelectorAll('.swatch').forEach(s=>s.style.borderColor='transparent');
-        sw.style.borderColor='var(--txt)';
-      };
-      grid.appendChild(sw);
-    });
-    // Also allow dblclick reminder
-    const hint=document.createElement('div');
-    hint.style.cssText='font-size:10px;color:var(--txt3);margin-top:6px;';
-    hint.textContent='Double-click the note to edit text';
-    row.appendChild(hint);
-  }
-
-  // Layer order
-  addPropRow(c,'Layer',`<div class="pp-btn-row"><button class="pp-btn" onclick="cxFront()">Front</button><button class="pp-btn" onclick="cxBack()">Back</button></div>`);
-
-  // Rotation
-  addPropRow(c,'Rotation',`<input type="range" min="0" max="360" value="${Math.round(o.angle||0)}" oninput="setProp('angle',+this.value);document.getElementById('pp-rot-v').textContent=this.value+'Â°'">`,`<span id="pp-rot-v">${Math.round(o.angle||0)}Â°</span>`);
-}
-
-function addPropRow(container,label,inputHtml,valHtml=''){
-  const row=document.createElement('div');row.className='pp-row';
-  row.innerHTML=`<div class="pp-lbl"><span>${label}</span>${valHtml}</div>${inputHtml}`;
-  container.appendChild(row);
-}
-
-function addColorRow(container, label, currentColor, onChange) {
-  const safeCol = (typeof currentColor === 'string' && /^#[0-9a-fA-F]{6}$/.test(currentColor))
-    ? currentColor : '#C8102E';
-  const row = document.createElement('div');
-  row.className = 'pp-row';
-  const uid = 'col_' + Math.random().toString(36).slice(2);
-
-  row.innerHTML = `
-    <div class="pp-lbl">${label}</div>
-    <div class="pp-color-row">
-      <input type="color" class="pp-color-input" id="${uid}" value="${safeCol}"
-        oninput="syncColorPicker(this,'${uid}',_ppOnChange_${uid})">
-      <!-- Hex text input -->
-      <input type="text" id="${uid}_hex" maxlength="7" value="${safeCol}"
-        placeholder="#000000"
-        style="width:68px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;
-               color:var(--txt);font-family:'DM Mono',monospace;font-size:11px;padding:4px 6px;
-               outline:none;text-transform:uppercase;"
-        oninput="syncHexInput(this,'${uid}',_ppOnChange_${uid})"
-        onfocus="this.select()">
-    </div>
-    <div class="palette-grid" id="${uid}_grid"></div>
-    <!-- Recent colors strip -->
-    <div id="${uid}_history" style="display:flex;gap:3px;flex-wrap:wrap;margin-top:4px;min-height:0;"></div>`;
-
-  // Store callback globally so inline handlers can find it
-  window[`_ppOnChange_${uid}`] = (color) => {
-    onChange(color);
-    addToColorHistory(color);
-    renderHistoryStrip(row.querySelector(`#${uid}_history`));
-  };
-
-  // Palette grid
-  const grid = row.querySelector(`#${uid}_grid`);
-  PALETTE.forEach(col => {
-    const sw = document.createElement('div');
-    sw.className = 'swatch' + (col === safeCol ? ' sel' : '');
-    sw.style.background = col;
-    if (col === '#FFFFFF' || col === '#ffffff') sw.style.border = '2px solid var(--border2)';
-    sw.onclick = () => {
-      window[`_ppOnChange_${uid}`](col);
-      const inp = row.querySelector('input[type=color]');
-      const hex = row.querySelector(`#${uid}_hex`);
-      if (inp && /^#[0-9a-fA-F]{6}$/.test(col)) inp.value = col;
-      if (hex) hex.value = col.toUpperCase();
-      grid.querySelectorAll('.swatch').forEach(s => s.classList.remove('sel'));
-      sw.classList.add('sel');
-    };
-    grid.appendChild(sw);
-  });
-
-  // Initial history strip
-  renderHistoryStrip(row.querySelector(`#${uid}_history`), window[`_ppOnChange_${uid}`], row, uid);
-
-  container.appendChild(row);
-}
-
-function syncColorPicker(picker, uid, cb) {
-  const hex = picker.value;
-  const hexInput = document.getElementById(uid + '_hex');
-  if (hexInput) hexInput.value = hex.toUpperCase();
-  if (cb) cb(hex);
-}
-
-function syncHexInput(input, uid, cb) {
-  let val = input.value.trim();
-  if (!val.startsWith('#')) val = '#' + val;
-  input.value = val.toUpperCase();
-  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
-    const picker = document.getElementById(uid);
-    if (picker) picker.value = val;
-    if (cb) cb(val);
-  }
-}
-
-function renderHistoryStrip(container, cb, row, uid) {
-  if (!container) return;
-  container.innerHTML = '';
-  if (!_colorHistory.length) return;
-  const label = document.createElement('div');
-  label.style.cssText = 'font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.5px;text-transform:uppercase;width:100%;margin-bottom:3px;';
-  label.textContent = 'Recent';
-  container.appendChild(label);
-  _colorHistory.forEach(hex => {
-    const sw = document.createElement('div');
-    sw.className = 'swatch';
-    sw.style.background = hex; sw.title = hex;
-    if (hex === '#ffffff' || hex === '#FFFFFF') sw.style.border = '1.5px solid var(--border2)';
-    sw.onclick = () => {
-      if (cb) cb(hex);
-      else {
-        const obj = cv.getActiveObject() || propTarget; if (!obj) return;
-        setProp('fill', hex);
-      }
-      if (row && uid) {
-        const picker = document.getElementById(uid);
-        const hexInput = document.getElementById(uid + '_hex');
-        if (picker && /^#[0-9a-fA-F]{6}$/.test(hex)) picker.value = hex;
-        if (hexInput) hexInput.value = hex.toUpperCase();
-      }
-    };
-    container.appendChild(sw);
-  });
-}
-
-function startEyedropperForProp(label, uid, cb){
-  const o=cv.getActiveObject()||propTarget; if(!o)return;
-  const propMap={'Fill':'fill','Stroke':'stroke','Color':'fill','Text Color':'fill'};
-  const prop=propMap[label]||'fill';
-  // After sampling, also update the hex text input and history
-  const wrappedCb=(color)=>{
-    o.set(prop,color); cv.renderAll();
-    addToColorHistory(color);
-    if(uid){
-      const picker=document.getElementById(uid);
-      const hexInput=document.getElementById(uid+'_hex');
-      if(picker&&/^#[0-9a-fA-F]{6}$/.test(color))picker.value=color;
-      if(hexInput)hexInput.value=color.toUpperCase();
-    }
-    if(cb)cb(color);
-    // Re-render history strips
-    document.querySelectorAll('[id$="_history"]').forEach(el=>{
-      renderHistoryStrip(el);
-    });
-  };
-  startEyedropper(o,prop,wrappedCb);
-}
-
-function toggleFontStyle(prop,onVal,offVal,btn){
-  const o=cv.getActiveObject();if(!o)return;
-  const cur=o[prop];const next=cur===onVal?offVal:onVal;
-  o.set(prop,next);normalizeTextBox(o);cv.renderAll();btn.classList.toggle('active',next===onVal);commitCanvasChange({historyDelay:250,persistDelay:700});
-}
-
-function addToColorHistory(color){
-  if(!color||color.length<4)return;
-  _colorHistory=_colorHistory.filter(c=>c!==color);
-  _colorHistory.unshift(color);
-  if(_colorHistory.length>8)_colorHistory.length=8;
-}
-
-function setPropOnTarget(el,prop,val){
-  const o=cv.getActiveObject()||propTarget;
-  if(!o)return;
-  o.set(prop,val);
-  if(prop==='fontFamily'||prop==='fontSize'||prop==='fontWeight'||prop==='fontStyle'){
-    normalizeTextBox(o);
-  }
-  if(prop==='fill'||prop==='stroke')addToColorHistory(val);
-  cv.requestRenderAll();
-  el.style.fontFamily=val;
-  commitCanvasChange({historyDelay:250,persistDelay:700});
-}
-
-function setProp(prop,val){
-  const o=cv.getActiveObject()||propTarget;
-  if(!o)return;
-  o.set(prop,val);
-  if(prop==='fontFamily'||prop==='fontSize'||prop==='fontWeight'||prop==='fontStyle'){
-    normalizeTextBox(o);
-  }
-  if(prop==='fill'||prop==='stroke')addToColorHistory(val);
-  cv.requestRenderAll();
-  commitCanvasChange({historyDelay:250,persistDelay:700});
-}
-
-// -
-// PROP PANEL - PIN / DRAG
-// -
-function togglePinPanel(){
-  propPinned=!propPinned;
-  const panel=document.getElementById('prop-panel');
-  const wrap=document.getElementById('right-panel-wrap');
-  const btn=document.getElementById('pin-btn');
-  btn.classList.toggle('active',propPinned);
-  if(propPinned){
-    panel.classList.add('pinned');
-    wrap.appendChild(panel);
-    panel.style.cssText='';// clear inline drag styles
-  } else {
-    panel.classList.remove('pinned');
-    document.getElementById('cw').appendChild(panel);
-    panel.style.right='12px';panel.style.top='12px';
-  }
-}
-
-function makePropDraggable(){
-  const panel=document.getElementById('prop-panel');
-  const hdr=document.getElementById('prop-header');
-  let isDragging=false,ox=0,oy=0;
-  ['pointerdown','mousedown','click','dblclick','wheel'].forEach(type=>{
-    panel.addEventListener(type,e=>e.stopPropagation());
-  });
-  // Use pointer events so stylus/pen also works
-  hdr.addEventListener('pointerdown',e=>{
-    if(propPinned||e.target.closest('button'))return;
-    isDragging=true;
-    hdr.setPointerCapture(e.pointerId);
-    const r=panel.getBoundingClientRect();
-    ox=e.clientX-r.left; oy=e.clientY-r.top;
-    e.stopPropagation();
-    e.preventDefault();
-  });
-  hdr.addEventListener('pointermove',e=>{
-    if(!isDragging)return;
-    const cw=document.getElementById('cw').getBoundingClientRect();
-    const w=panel.offsetWidth,h=panel.offsetHeight;
-    const x=Math.max(6,Math.min(e.clientX-cw.left-ox,cw.width-w-6));
-    const y=Math.max(6,Math.min(e.clientY-cw.top-oy,cw.height-h-6));
-    panel.style.left=x+'px';
-    panel.style.top=y+'px';
-    panel.style.right='auto';
-    e.stopPropagation();
-    e.preventDefault();
-  });
-  const stopDrag=e=>{isDragging=false;e.stopPropagation();};
-  hdr.addEventListener('pointerup',stopDrag);
-  hdr.addEventListener('pointercancel',stopDrag);
-}
-
-// -
 // HISTORY
 // -
 function hKey(){return curProj+'__'+curCv;}
@@ -2142,176 +1601,39 @@ function updateStatus(){const el=document.getElementById('s-objs');if(el)el.text
 // -
 // PROJECTS + CANVASES
 // -
-function loadLS(){try{const r=localStorage.getItem('mbp6');if(r)projects=JSON.parse(r);}catch(e){}}
-function saveLS(){
+async function loadLS(){
+  try{
+    const r=localStorage.getItem('mbp6');
+    if(r)projects=JSON.parse(r);
+  }catch(e){}
+  return Promise.resolve(!!Object.keys(projects||{}).length);
+}
+async function saveLS(){
+  const snapshot={v:1,projects,updatedAt:Date.now()};
   try{
     localStorage.setItem('mbp6',JSON.stringify(projects));
-    return true;
   }catch(e){
-    console.warn('MoodBoard Pro save failed',e);
+    console.warn('MoodBoard Pro localStorage save failed',e);
     trimNonEssentialProjectData();
     try{
       localStorage.setItem('mbp6',JSON.stringify(projects));
-      return true;
     }catch(e2){
-      console.warn('MoodBoard Pro compact save failed',e2);
+      console.warn('MoodBoard Pro compact localStorage save failed',e2);
     }
     const now=Date.now();
     if(now-_lastSaveErrorToast>15000){
       toast?.('No se pudo guardar: reduce el tamaño o número de imágenes');
       _lastSaveErrorToast=now;
     }
-    return false;
   }
+  try{ await saveWorkspaceState?.(snapshot); }catch(e){}
+  return true;
 }
-function trimNonEssentialProjectData(){
-  Object.values(projects||{}).forEach(p=>{
-    if(!p)return;
-    p.thumbnail=null;
-    if(Array.isArray(p.comparisons)){
-      p.comparisons=p.comparisons.slice(0,4).map(c=>({
-        id:c.id,
-        name:c.name,
-        canvasId:c.canvasId,
-        createdAt:c.createdAt,
-        summary:c.summary,
-        palette:c.palette||[],
-        refs:(c.refs||[]).map(r=>({name:r.name,palette:r.palette||[],tone:r.tone,mood:r.mood,contrast:r.contrast}))
-      }));
-    }
-    if(Array.isArray(p.palettes))p.palettes=p.palettes.slice(0,12);
-  });
-}
-function createProj(name){const id=genId();projects[id]={name,color:PROJ_COLS[Object.keys(projects).length%PROJ_COLS.length],canvases:{}};return id;}
-function createCv(projId,name){const id=genId();projects[projId].canvases[id]={name,json:null};return id;}
-
-function switchCv(pid,cid){
-  // Save current canvas state WITH viewport
-  if(curProj&&curCv){
-    projects[curProj].canvases[curCv].json=JSON.stringify({
-      canvas:canvasJSON(),
-      layers,
-      activeLayerId,
-      collapsedLayerIds:getCollapsedLayerIds(),
-      viewport:cv.viewportTransform.slice()
-    });
-    saveLS();
-  }
-  curProj=pid; curCv=cid;
-  setCanvasLoading(true,'Loading project');
-  if(cv){
-    cv.discardActiveObject();
-    cv.clear();
-    cv.renderAll();
-  }
-  localStorage.setItem('mbp_last_proj',pid);
-  localStorage.setItem('mbp_last_cv',cid);
-  const cvData=projects[pid].canvases[cid];
-  const crumbProj=document.getElementById('crumb-proj');
-  const crumbCv=document.getElementById('crumb-cv');
-  if(crumbProj)crumbProj.textContent=projects[pid].name;
-  if(crumbCv)crumbCv.textContent=cvData.name;
-
-  if(cvData.json){
-    const d=typeof cvData.json==='string'?JSON.parse(cvData.json):cvData.json;
-    layers=d.layers||[]; activeLayerId=d.activeLayerId||null;
-    setCollapsedLayerIds(d.collapsedLayerIds||[]);
-    if(!layers.length)newLayer('Layer 1');
-    cv.loadFromJSON(d.canvas||d,()=>{
-      // Force background transparent - Fabric resets it on loadFromJSON
-      cv.backgroundColor=null;
-      if(cv.lowerCanvasEl) cv.lowerCanvasEl.style.background='transparent';
-      cv.getObjects().forEach(o=>{
-        const layer=layers.find(l=>l.id===o.__lid);
-        if(layer&&layer.locked){o.selectable=false;o.evented=false;}
-        else{applyObjectControls(o);o.selectable=true;o.evented=true;o.hasControls=true;o.hasBorders=true;}
-      });
-      const vp=d.viewport;
-      if(Array.isArray(vp)&&vp.length===6) cv.setViewportTransform(vp);
-      else cv.setViewportTransform([1,0,0,1,0,0]);
-      const zlbl=document.getElementById('zlbl');
-      if(zlbl)zlbl.textContent=Math.round(cv.getZoom()*100)+'%';
-      cv.renderAll(); saveH(); renderLayers(); updateStatus(); setCanvasLoading(false);
-    });
-  } else {
-    cv.clear();
-    cv.backgroundColor=null;
-    if(cv.lowerCanvasEl) cv.lowerCanvasEl.style.background='transparent';
-    layers=[]; activeLayerId=null; setCollapsedLayerIds([]);
-    cv.setViewportTransform([1,0,0,1,0,0]);
-    const zlbl=document.getElementById('zlbl'); if(zlbl)zlbl.textContent='100%';
-    newLayer('Layer 1'); cv.renderAll(); saveH(); renderLayers(); updateStatus(); setCanvasLoading(false);
-  }
-  document.title=cvData.name+' - '+projects[pid].name+' - MoodBoard Pro';
-  renderCvList(); updateLayerBadge();
-}
-
-function autoSave(){
-  if(!curProj||!curCv||!cv)return;
-  projects[curProj].canvases[curCv].json=JSON.stringify({
-    canvas:canvasJSON(),
-    layers,
-    activeLayerId,
-    collapsedLayerIds:getCollapsedLayerIds(),
-    viewport:cv.viewportTransform.slice()
-  });
-  // Generate thumbnail with white background (JPEG has no alpha, transparent - black)
-  try{
-    const prevBg=cv.backgroundColor;
-    cv.backgroundColor='#ffffff';
-    cv.renderAll();
-    projects[curProj].thumbnail=cv.toDataURL({format:'jpeg',quality:0.4,multiplier:0.22});
-    cv.backgroundColor=prevBg;
-    cv.renderAll();
-  }catch(e){}
-  saveLS();
-  const el=document.getElementById('s-save');
-  if(el)el.textContent='Saved '+new Date().toLocaleTimeString();
-}
-
-function openNewCvModal(pid){
-  newCvForProj=pid;renamingCvId=null;
-  document.getElementById('m-cv-t').textContent='New Canvas';
-  document.getElementById('m-cv-n').value='Board '+(Object.keys(projects[pid].canvases).length+1);
-  openM('m-cv');setTimeout(()=>document.getElementById('m-cv-n').select(),40);
-}
-function startRenCv(pid,cid,e){
-  e.stopPropagation();newCvForProj=pid;renamingCvId=cid;
-  document.getElementById('m-cv-t').textContent='Rename Canvas';
-  document.getElementById('m-cv-n').value=projects[pid].canvases[cid].name;
-  openM('m-cv');setTimeout(()=>document.getElementById('m-cv-n').select(),40);
-}
-function confirmCv(){
-  const name=document.getElementById('m-cv-n').value.trim()||'Untitled';closeM('m-cv');
-  if(renamingCvId){projects[newCvForProj].canvases[renamingCvId].name=name;renamingCvId=null;newCvForProj=null;saveLS();renderCvList();}
-  else{const cid=createCv(newCvForProj,name);saveLS();switchCv(newCvForProj,cid);newCvForProj=null;}
-}
-function delCv(pid,cid,e){
-  e.stopPropagation();
-  if(Object.keys(projects[pid].canvases).length===1)return toast('Cannot delete the only canvas');
-  customConfirm(`Delete canvas "${projects[pid].canvases[cid].name}"?`, ()=>{
-    delete projects[pid].canvases[cid]; saveLS();
-    if(curProj===pid&&curCv===cid){curCv=null;const ncid=Object.keys(projects[pid].canvases)[0];switchCv(pid,ncid);}
-    else renderCvList();
-  });
-}
-
 // -
 // EXPORT / IMPORT
-// -
 </script>
 <script src="js/export.js"></script>
 <script>
-function clearAll(){
-  customConfirm('This will remove all objects from this canvas. Cannot be undone.', ()=>{
-    cv.clear(); cv.backgroundColor=null; layers=[]; activeLayerId=null;
-    manualGuides={x:[],y:[]};
-    smartGuides={x:[],y:[]};
-    newLayer('Layer 1'); cv.renderAll(); renderGuideLayer(); toast('Board cleared');
-  }, 'Clear Canvas', 'Clear all', true);
-}
-function dlBlob(blob,name){const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);}
-
 // DROP & PASTE
 function evDrop(e){
   e.preventDefault();
@@ -2335,98 +1657,15 @@ function evDrop(e){
 async function evPaste(e){const tag=e.target.tagName;if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;for(const item of(e.clipboardData?.items||[])){if(item.type.startsWith('image/')){e.preventDefault();const rd=new FileReader();rd.onload=ev=>loadImg(ev.target.result);rd.readAsDataURL(item.getAsFile());return;}}const txt=e.clipboardData?.getData('text/plain');if(txt&&/\.(jpe?g|png|gif|webp|svg)/i.test(txt))return loadImg(txt);if(txt){const t=new fabric.Textbox(txt,{left:cv.width/2-140,top:cv.height/2-22,width:280,fontFamily:'Syne',fontSize:20,fill:'#111827',fontWeight:'600',lineHeight:1.18,objectCaching:false});normalizeTextBox(t);addObj(t);}}
 
 // MODALS
-function openM(id){document.getElementById(id).classList.add('on');}
-function closeM(id){document.getElementById(id).classList.remove('on');}
 document.addEventListener('click',e=>{if(e.target.classList.contains('mbg'))document.querySelectorAll('.mbg.on').forEach(m=>m.classList.remove('on'));});
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'){if(document.getElementById('m-proj').classList.contains('on'))confirmProj();if(document.getElementById('m-cv').classList.contains('on'))confirmCv();if(document.getElementById('m-img').classList.contains('on'))addImgURL();if(document.getElementById('m-compare-proj')?.classList.contains('on'))confirmCompareProjectModal();}
   if(e.key==='Escape')document.querySelectorAll('.mbg.on').forEach(m=>m.classList.remove('on'));
 });
 
-// -
-// LIVE SEARCH - dropdown with highlighted results
-// -
-function onSearchInput(){
-  const q = (document.getElementById('home-search')?.value || '').trim();
-  const qLower = q.toLowerCase();
-  const dd = document.getElementById('search-dropdown');
-  if (!dd) return;
-
-  // Always re-render the grid (filters in place)
-  renderHome();
-
-  // Hide dropdown when empty
-  if (!q) { dd.style.display = 'none'; return; }
-
-  // Search across all non-deleted projects
-  const results = Object.entries(projects)
-    .filter(([, p]) => !p.deleted)
-    .filter(([, p]) => {
-      const inName = String(p.name || '').toLowerCase().includes(qLower);
-      const inTags = (p.tags || []).some(t => String(t).toLowerCase().includes(qLower));
-      const inStatus = getProjectStatus(p.status).label.toLowerCase().includes(qLower);
-      return inName || inTags || inStatus;
-    })
-    .slice(0, 7); // max 7 results
-
-  dd.innerHTML = '';
-
-  if (!results.length) {
-    dd.innerHTML = `<div class="sri-empty">No projects match "<strong>${escHtml(q)}</strong>"</div>`;
-    dd.style.display = 'block';
-    return;
-  }
-
-  results.forEach(([pid, proj]) => {
-    const firstCvId = Object.keys(proj.canvases)[0];
-    const item = document.createElement('div');
-    item.className = 'search-result-item';
-
-    // Thumbnail
-    const thumbHtml = proj.thumbnail
-      ? `<img src="${proj.thumbnail}" alt="">`
-      : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
-
-    // Highlight matching text in name
-    const highlightedName = highlightMatch(proj.name, q);
-
-    // Tags
-    const tagHtml = (proj.tags || [])
-      .map(t => `<span class="proj-card-tag" style="${String(t).toLowerCase().includes(qLower)?'background:var(--acl);border-color:var(--accent);color:var(--accent)':''}">${escHtml(t)}</span>`)
-      .join('');
-
-    const cvCount = Object.keys(proj.canvases).length;
-
-    item.innerHTML = `
-      <div class="sri-thumb">${thumbHtml}</div>
-      <div style="min-width:0;flex:1;">
-        <div class="sri-name">${highlightedName}</div>
-        <div class="sri-meta">${cvCount} canvas${cvCount !== 1 ? 'es' : ''} · ${escHtml(getProjectStatus(proj.status).label)}</div>
-        ${tagHtml ? `<div class="sri-tags">${tagHtml}</div>` : ''}
-      </div>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2" style="flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>`;
-
-    item.onclick = () => {
-      closeSearchDropdown();
-      openEditor(pid, firstCvId);
-    };
-    dd.appendChild(item);
-  });
-
-  dd.style.display = 'block';
-}
-
-function highlightMatch(text, query) {
-  if (!query) return escHtml(text);
-  const idx = text.toLowerCase().indexOf(query.toLowerCase());
-  if (idx === -1) return escHtml(text);
-  return escHtml(text.slice(0, idx))
-    + `<mark>${escHtml(text.slice(idx, idx + query.length))}</mark>`
-    + escHtml(text.slice(idx + query.length));
-}
-
 </script>
 <script src="js/ui.js"></script>
+<script src="js/properties.js"></script>
 <script src="js/editor-tail.js"></script>
 </body>
 </html>
