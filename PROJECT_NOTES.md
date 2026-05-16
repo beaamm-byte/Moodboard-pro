@@ -45,6 +45,10 @@ Workspace: `D:\PROYECTOS\CODE\Moodboard-pro`
   - editable shared palette;
   - `Convertir en board` flow into `Visual Direction`;
   - project palettes in the editor sidebar.
+- Rulers/manual guides are implemented and currently reported as working well.
+- Rulers are enabled by default for projects.
+- The `Rulers` control now sits with the editor tools next to `Select`, `Draw`, and `Pan`.
+- The redundant topbar `Frame` button next to Zen Mode was removed; image framing remains in the properties panel.
 
 ## Important Open Issue
 
@@ -54,7 +58,11 @@ Workspace: `D:\PROYECTOS\CODE\Moodboard-pro`
 ## Next Steps
 
 1. Verify comparator-generated boards survive reload and re-open correctly.
-2. Verify smart guides.
-3. Add rulers and manual guides.
+2. Re-check smart guides/rulers behavior after more real use, especially pan/zoom and guide persistence.
+3. Finish cleanup of legacy duplicate blocks and stale mojibake strings in `index.html`.
 4. Keep the export menu compact.
-5. Finish cleanup of legacy duplicate blocks and stale mojibake strings in `index.html`.
+
+## Pause Point
+
+- As of 2026-05-16, user reports the latest changes appear to work well and is ready to switch to another project.
+- Git status at pause: only `PROJECT_NOTES.md` is modified from this notes update. The rulers/defaults UI changes are already present in `HEAD`.
