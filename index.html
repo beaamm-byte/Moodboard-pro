@@ -655,6 +655,21 @@
 
 <script src="js/state.js"></script>
 <script>
+window.MBP_BUILD='drag-image-fix-2026-05-17e';
+console.info('MoodBoard Pro build:',window.MBP_BUILD);
+(function patchCanvasTextBaseline(){
+  const proto=window.CanvasRenderingContext2D?.prototype;
+  if(!proto||proto.__mbpBaselinePatch)return;
+  const desc=Object.getOwnPropertyDescriptor(proto,'textBaseline');
+  if(!desc?.get||!desc?.set)return;
+  Object.defineProperty(proto,'textBaseline',{
+    get(){return desc.get.call(this);},
+    set(value){desc.set.call(this,value==='alphabetical'?'alphabetic':value);},
+    configurable:true,
+    enumerable:desc.enumerable
+  });
+  proto.__mbpBaselinePatch=true;
+})();
 // -
 // BOOT
 // -
@@ -1065,18 +1080,122 @@ function addShape(type){
 // -
 function openImgModal(){document.getElementById('m-img-url').value='';openM('m-img');}
 function addImgURL(){const u=document.getElementById('m-img-url').value.trim();if(!u)return;closeM('m-img');loadImg(u);}
-function fileChosen(e){const f=e.target.files[0];if(!f)return;closeM('m-img');const rd=new FileReader();rd.onload=ev=>loadImg(ev.target.result);rd.readAsDataURL(f);e.target.value='';}
-async function loadImg(url,dx,dy){
-  fabric.Image.fromURL(url,async img=>{
-    if(!img||!img.width)return toast('Could not load image');
-    const mw=cv.width*.45,mh=cv.height*.45;
-    if(img.width>mw||img.height>mh)img.scale(Math.min(mw/img.width,mh/img.height));
-    img.set({left:dx??cv.width/2-img.getScaledWidth()/2,top:dy??cv.height/2-img.getScaledHeight()/2});
-    if(typeof url==='string'&&url.startsWith('data:image/')){
-      try{img.__assetKey=await putImageAsset(url);}catch(e){}
+function isImageFile(file){
+  return !!file&&(file.type?.startsWith('image/')||/\.(jpe?g|png|gif|webp|svg|bmp|avif)$/i.test(file.name||''));
+}
+function readFileAsDataUrl(file){
+  return new Promise((resolve,reject)=>{
+    const rd=new FileReader();
+    rd.onload=ev=>resolve(ev.target.result);
+    rd.onerror=reject;
+    rd.readAsDataURL(file);
+  });
+}
+function imageElementFromSource(src,crossOrigin=null){
+  return new Promise((resolve,reject)=>{
+    const el=new Image();
+    if(crossOrigin)el.crossOrigin=crossOrigin;
+    el.onload=()=>resolve(el);
+    el.onerror=reject;
+    el.src=src;
+  });
+}
+function imageElementFromSourceWithTimeout(src,crossOrigin=null,timeoutMs=8000){
+  return new Promise((resolve,reject)=>{
+    const el=new Image();
+    let done=false;
+    const finish=(fn,value)=>{
+      if(done)return;
+      done=true;
+      clearTimeout(timer);
+      fn(value);
+    };
+    const timer=setTimeout(()=>finish(reject,new Error('Image load timed out')),timeoutMs);
+    if(crossOrigin)el.crossOrigin=crossOrigin;
+    el.onload=()=>finish(resolve,el);
+    el.onerror=()=>finish(reject,new Error('Image load failed'));
+    el.src=src;
+  });
+}
+async function addImageElementToCanvas(el,src,dx,dy,assetKey=null){
+  const img=new fabric.Image(el);
+  if(!img||!img.width)return toast('Could not load image');
+  const mw=cv.width*.45,mh=cv.height*.45;
+  if(img.width>mw||img.height>mh)img.scale(Math.min(mw/img.width,mh/img.height));
+  const center=typeof screenToCanvasPoint==='function'
+    ?screenToCanvasPoint(window.innerWidth/2,window.innerHeight/2)
+    :new fabric.Point(cv.width/2,cv.height/2);
+  img.set({left:dx??center.x-img.getScaledWidth()/2,top:dy??center.y-img.getScaledHeight()/2});
+  if(typeof src==='string'&&src.startsWith('data:image/')){
+    try{img.__assetKey=await putImageAsset(src);}catch(e){}
+  }
+  if(assetKey)img.__assetKey=assetKey;
+  addObj(img);
+  console.info('MBP image added', {width:img.width,height:img.height,left:img.left,top:img.top});
+}
+async function loadImageFile(file,dx,dy){
+  if(!file)return;
+  console.info('MBP image file selected', {name:file.name,type:file.type,size:file.size});
+  if(!isImageFile(file))return toast('El archivo no parece ser una imagen');
+  const objectUrl=URL.createObjectURL(file);
+  try{
+    const [el,dataUrl]=await Promise.all([
+      imageElementFromSourceWithTimeout(objectUrl,null,8000),
+      readFileAsDataUrl(file)
+    ]);
+    const assetKey='img_'+genId();
+    _imageAssetCache?.set(assetKey,dataUrl);
+    putImageAssetWithKey(assetKey,dataUrl).catch(()=>{});
+    await addImageElementToCanvas(el,objectUrl,dx,dy,assetKey);
+  }catch(e){
+    try{
+      const dataUrl=await readFileAsDataUrl(file);
+      const el=await imageElementFromSourceWithTimeout(dataUrl,null,8000);
+      await addImageElementToCanvas(el,dataUrl,dx,dy);
+    }catch(e2){
+      console.error('MBP image file load failed', e, e2);
+      toast('No se pudo cargar la imagen');
     }
-    addObj(img);
-  },{crossOrigin:'anonymous'});
+  }finally{
+    setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);
+  }
+}
+async function loadImageBlob(blob,dx,dy){
+  if(!blob)return;
+  const objectUrl=URL.createObjectURL(blob);
+  try{
+    const [el,dataUrl]=await Promise.all([
+      imageElementFromSourceWithTimeout(objectUrl,null,8000),
+      readFileAsDataUrl(blob)
+    ]);
+    const assetKey='img_'+genId();
+    _imageAssetCache?.set(assetKey,dataUrl);
+    putImageAssetWithKey(assetKey,dataUrl).catch(()=>{});
+    await addImageElementToCanvas(el,objectUrl,dx,dy,assetKey);
+  }catch(e){
+    console.error('MBP image file load failed', e);
+    toast('No se pudo cargar la imagen');
+  }finally{
+    setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);
+  }
+}
+function fileChosen(e){const f=e.target.files[0];if(!f)return;closeM('m-img');loadImageFile(f);e.target.value='';}
+async function loadImg(url,dx,dy){
+  const useCors=typeof url==='string'&&/^https?:\/\//i.test(url);
+  console.info('MBP load image source', {source:String(url).slice(0,120),useCors,dx,dy});
+  try{
+    const el=await imageElementFromSourceWithTimeout(url,useCors?'anonymous':null,8000);
+    await addImageElementToCanvas(el,url,dx,dy);
+  }catch(e){
+    if(!useCors)return toast('Could not load image');
+    try{
+      const el=await imageElementFromSourceWithTimeout(url,null,8000);
+      await addImageElementToCanvas(el,url,dx,dy);
+    }catch(e2){
+      console.error('MBP remote image load failed', e, e2);
+      toast('Could not load image');
+    }
+  }
 }
 
 // -
@@ -1408,7 +1527,18 @@ function evKey(e){
     if (e.key==='y'||(e.shiftKey&&e.key==='Z')){e.preventDefault();doRedo();return;}
     if (e.key==='c'){e.preventDefault();copyToClipboard();return;}
     if (e.key==='x'){e.preventDefault();cutToClipboard();return;}
-    if (e.key==='v'){e.preventDefault();pasteFromClipboard();return;}
+    if (e.key==='v'){
+      if(_clipboard){
+        window._pendingInternalPaste=true;
+        setTimeout(()=>{
+          if(window._pendingInternalPaste){
+            pasteFromClipboard();
+            window._pendingInternalPaste=false;
+          }
+        },0);
+      }
+      return;
+    }
     if (e.key==='d'){
       e.preventDefault();
       if(e.altKey) cxDupeNewLayer();
@@ -1635,26 +1765,94 @@ async function saveLS(){
 <script src="js/export.js"></script>
 <script>
 // DROP & PASTE
+function isEditorActive(){
+  return document.getElementById('editor-screen')?.classList.contains('active');
+}
+function eventIsOverCanvas(e){
+  const cw=document.getElementById('cw');
+  if(!cw)return false;
+  const r=cw.getBoundingClientRect();
+  return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;
+}
+function getDropUrl(dt){
+  const raw=dt?.getData('text/uri-list')||dt?.getData('text/plain')||'';
+  const url=raw.split(/\r?\n/).map(x=>x.trim()).find(x=>x&&!x.startsWith('#'))||'';
+  if(url)return url;
+  const html=dt?.getData('text/html')||'';
+  const doc=new DOMParser().parseFromString(html,'text/html');
+  return doc.querySelector('img')?.src||'';
+}
+function hasExternalImageDrop(e){
+  const dt=e.dataTransfer;
+  if(!dt)return false;
+  const types=[...(dt.types||[])];
+  if(types.includes('Files'))return true;
+  return types.includes('text/uri-list')||types.includes('text/plain')||types.includes('text/html');
+}
 function evDrop(e){
   e.preventDefault();
   document.getElementById('drop-hl').classList.remove('on');
-  const cw=document.getElementById('cw');
-  const r=cw.getBoundingClientRect();
-  const screenPt=new fabric.Point(e.clientX-r.left,e.clientY-r.top);
-  const inv=fabric.util.invertTransform(cv.viewportTransform);
-  const p=fabric.util.transformPoint(screenPt,inv);
+  console.info('MBP drop received', {
+    types:[...(e.dataTransfer?.types||[])],
+    files:[...(e.dataTransfer?.files||[])].map(f=>({name:f.name,type:f.type,size:f.size}))
+  });
+  const p=typeof screenToCanvasPoint==='function'
+    ?screenToCanvasPoint(e.clientX,e.clientY)
+    :new fabric.Point(cv.width/2,cv.height/2);
   if(e.dataTransfer.files?.length){
-    [...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')).forEach(f=>{
-      const rd=new FileReader();
-      rd.onload=ev=>loadImg(ev.target.result,p.x,p.y);
-      rd.readAsDataURL(f);
-    });
+    const files=[...e.dataTransfer.files].filter(isImageFile);
+    if(files.length){
+      files.forEach(f=>loadImageFile(f,p.x,p.y));
+      return;
+    }
+  }
+  const url=getDropUrl(e.dataTransfer);
+  if(url?.startsWith('http'))loadImg(url,p.x,p.y);
+  else toast('Suelta un archivo de imagen o una imagen desde una web');
+}
+function evDocumentDragOver(e){
+  if(!isEditorActive()||!eventIsOverCanvas(e)||!hasExternalImageDrop(e))return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect='copy';
+  document.getElementById('drop-hl').classList.add('on');
+}
+function evDocumentDrop(e){
+  if(!isEditorActive()||!eventIsOverCanvas(e)||!hasExternalImageDrop(e))return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  evDrop(e);
+}
+document.addEventListener('dragover',evDocumentDragOver,true);
+document.addEventListener('drop',evDocumentDrop,true);
+async function evPaste(e){
+  const tag=e.target.tagName;
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;
+  for(const item of(e.clipboardData?.items||[])){
+    if(item.type.startsWith('image/')){
+      e.preventDefault();
+      window._pendingInternalPaste=false;
+      loadImageFile(item.getAsFile());
+      return;
+    }
+  }
+  const txt=e.clipboardData?.getData('text/plain');
+  if(txt&&/\.(jpe?g|png|gif|webp|svg|bmp|avif)(\?.*)?$/i.test(txt)){
+    window._pendingInternalPaste=false;
+    return loadImg(txt);
+  }
+  if(txt){
+    window._pendingInternalPaste=false;
+    const t=new fabric.Textbox(txt,{left:cv.width/2-140,top:cv.height/2-22,width:280,fontFamily:'Syne',fontSize:20,fill:'#111827',fontWeight:'600',lineHeight:1.18,objectCaching:false});
+    normalizeTextBox(t);
+    addObj(t);
     return;
   }
-  const url=e.dataTransfer.getData('text/plain')||e.dataTransfer.getData('text/uri-list');
-  if(url?.startsWith('http'))loadImg(url,p.x,p.y);
+  if(_clipboard){
+    e.preventDefault();
+    window._pendingInternalPaste=false;
+    pasteFromClipboard();
+  }
 }
-async function evPaste(e){const tag=e.target.tagName;if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;for(const item of(e.clipboardData?.items||[])){if(item.type.startsWith('image/')){e.preventDefault();const rd=new FileReader();rd.onload=ev=>loadImg(ev.target.result);rd.readAsDataURL(item.getAsFile());return;}}const txt=e.clipboardData?.getData('text/plain');if(txt&&/\.(jpe?g|png|gif|webp|svg)/i.test(txt))return loadImg(txt);if(txt){const t=new fabric.Textbox(txt,{left:cv.width/2-140,top:cv.height/2-22,width:280,fontFamily:'Syne',fontSize:20,fill:'#111827',fontWeight:'600',lineHeight:1.18,objectCaching:false});normalizeTextBox(t);addObj(t);}}
 
 // MODALS
 document.addEventListener('click',e=>{if(e.target.classList.contains('mbg'))document.querySelectorAll('.mbg.on').forEach(m=>m.classList.remove('on'));});

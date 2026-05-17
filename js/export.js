@@ -15,7 +15,13 @@ async function doExport(scope='all'){
     filename='moodboard-workspace.mb';
   }
   try{
+    await compactWorkspaceImageAssets(exportProjects);
+    await saveLS();
     data.assets=await buildAssetBundleForProjects(exportProjects);
+    if(_lastMissingAssetKeys?.length){
+      toast('Export cancelled: faltan datos de '+_lastMissingAssetKeys.length+' imagen(es). Recarga el board y vuelve a exportar.');
+      return;
+    }
   }catch(e){}
   const raw=JSON.stringify(data);
   const encoded='mbpro|'+btoa(unescape(encodeURIComponent(raw)));

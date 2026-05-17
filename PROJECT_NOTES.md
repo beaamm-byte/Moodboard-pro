@@ -14,7 +14,9 @@ Workspace: `D:\PROYECTOS\CODE\Moodboard-pro`
 ## Current Focus
 
 - Root files are the active working copy.
-- Current branch is `refactor/modular`.
+- Current working branch is `refactor/modular`.
+- PR #1 from `refactor/modular` into `main` was merged on 2026-05-16.
+- Keep `refactor/modular`; user wants to continue working from this branch.
 - Keep extracting by low-risk slices, then remove duplicate overrides once the structure is in place.
 - Preferred Codex model for future sessions: `gpt-5.5`.
 
@@ -65,4 +67,4 @@ Workspace: `D:\PROYECTOS\CODE\Moodboard-pro`
 ## Pause Point
 
 - As of 2026-05-16, user reports the latest changes appear to work well and is ready to switch to another project.
-- Git status at pause: only `PROJECT_NOTES.md` is modified from this notes update. The rulers/defaults UI changes are already present in `HEAD`.
+- Git status after PR merge/update, before this notes edit: on `refactor/modular`, clean and aligned with `origin/refactor/modular`. `main` contains the merged refactor via PR #1. After this notes update, `PROJECT_NOTES.md` is locally modified.
