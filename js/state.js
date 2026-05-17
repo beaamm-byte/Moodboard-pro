@@ -88,6 +88,7 @@ let _imageAssetCache=new Map();
 let _imageAssetInitPromise=null;
 let _workspaceDb=null;
 let _workspaceInitPromise=null;
+let _lastMissingAssetKeys=[];
 
 function loadLS(){
   try{
@@ -158,16 +159,17 @@ function initImageAssetStore(){
         const store=tx.objectStore('images');
         const keysReq=store.getAllKeys();
         const valsReq=store.getAll();
-        valsReq.onsuccess=()=>{
-          const vals=valsReq.result||[];
-          keysReq.onsuccess=()=>{
-            const keys=keysReq.result||[];
-            keys.forEach((k,i)=>_imageAssetCache.set(String(k),vals[i]));
-            resolve(true);
-          };
-          keysReq.onerror=()=>resolve(true);
+        let keys=null, vals=null, settled=false;
+        const finish=()=>{
+          if(settled||!keys||!vals)return;
+          settled=true;
+          keys.forEach((k,i)=>_imageAssetCache.set(String(k),vals[i]));
+          resolve(true);
         };
-        valsReq.onerror=()=>resolve(true);
+        keysReq.onsuccess=()=>{keys=keysReq.result||[];finish();};
+        valsReq.onsuccess=()=>{vals=valsReq.result||[];finish();};
+        keysReq.onerror=()=>{if(!settled){settled=true;resolve(true);}};
+        valsReq.onerror=()=>{if(!settled){settled=true;resolve(true);}};
       }catch(e){
         resolve(true);
       }
@@ -199,6 +201,29 @@ function getImageAsset(key){
   return _imageAssetCache.get(String(key))||null;
 }
 
+async function getImageAssetForExport(key){
+  const safeKey=String(key);
+  const cached=_imageAssetCache.get(safeKey);
+  if(cached)return cached;
+  await initImageAssetStore();
+  if(!_imageAssetDb)return null;
+  return new Promise(resolve=>{
+    try{
+      const tx=_imageAssetDb.transaction('images','readonly');
+      const req=tx.objectStore('images').get(safeKey);
+      req.onsuccess=()=>{
+        const data=req.result||null;
+        if(data)_imageAssetCache.set(safeKey,data);
+        resolve(data);
+      };
+      req.onerror=()=>resolve(null);
+      tx.onabort=()=>resolve(null);
+    }catch(e){
+      resolve(null);
+    }
+  });
+}
+
 async function registerImageAssetFromObject(img){
   if(!img||img.type!=='image')return null;
   const src=img.getSrc?.()||img._originalElement?.src||img._element?.src||img.src||'';
@@ -213,6 +238,10 @@ function normalizeAssetRefs(value){
   if(Array.isArray(value))return value.map(normalizeAssetRefs);
   const out={};
   Object.entries(value).forEach(([k,v])=>{
+    if(k==='textBaseline'&&v==='alphabetical'){
+      out[k]='alphabetic';
+      return;
+    }
     if(k==='src'&&typeof v==='string'&&v.startsWith('mbasset:')){
       const key=v.slice(8);
       out[k]=getImageAsset(key)||v;
@@ -367,9 +396,11 @@ async function buildAssetBundleForProjects(workspace=projects){
     });
   });
   const assets={};
+  _lastMissingAssetKeys=[];
   for(const key of keys){
-    const data=_imageAssetCache.get(String(key));
+    const data=await getImageAssetForExport(key);
     if(data)assets[key]=data;
+    else _lastMissingAssetKeys.push(String(key));
   }
   return assets;
 }
