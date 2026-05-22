@@ -89,13 +89,45 @@ let _imageAssetInitPromise=null;
 let _workspaceDb=null;
 let _workspaceInitPromise=null;
 let _lastMissingAssetKeys=[];
+let _currentCanvasHasUnresolvedAssets=false;
 
 function loadLS(){
-  try{
-    const r=localStorage.getItem('mbp6');
-    if(r)projects=JSON.parse(r);
-  }catch(e){}
-  return Promise.resolve(!!Object.keys(projects||{}).length);
+  const readLocalState=()=>{
+    try{
+      const r=localStorage.getItem('mbp6');
+      if(!r)return null;
+      const localProjects=JSON.parse(r);
+      const updatedAt=Number(localStorage.getItem('mbp6_updatedAt')||0);
+      return {v:1,projects:localProjects,updatedAt,source:'localStorage'};
+    }catch(e){
+      return null;
+    }
+  };
+  return Promise.all([loadWorkspaceState(),initImageAssetStore()]).then(([dbState])=>{
+    const localState=readLocalState();
+    const hasLocal=localState&&localState.projects&&Object.keys(localState.projects).length;
+    const hasDb=dbState&&dbState.projects&&Object.keys(dbState.projects).length;
+    let chosen=null;
+    if(hasLocal&&hasDb){
+      chosen=(Number(dbState.updatedAt||0)>Number(localState.updatedAt||0))?dbState:localState;
+    }else{
+      chosen=hasDb?dbState:(hasLocal?localState:null);
+    }
+    if(chosen?.projects){
+      projects=chosen.projects;
+      try{
+        localStorage.setItem('mbp6',JSON.stringify(projects));
+        if(chosen.updatedAt)localStorage.setItem('mbp6_updatedAt',String(chosen.updatedAt));
+      }catch(e){}
+    }
+    return !!Object.keys(projects||{}).length;
+  }).catch(()=>{
+    try{
+      const r=localStorage.getItem('mbp6');
+      if(r)projects=JSON.parse(r);
+    }catch(e){}
+    return !!Object.keys(projects||{}).length;
+  });
 }
 
 function trimNonEssentialProjectData(){
@@ -117,26 +149,54 @@ function trimNonEssentialProjectData(){
   });
 }
 
+function setSaveStatus(text,type=''){
+  const els=[
+    document.getElementById('s-save-statusbar')
+  ].filter(Boolean);
+  els.forEach(el=>{
+    el.textContent=text;
+    el.classList.remove('ok','err','busy');
+    if(type)el.classList.add(type);
+  });
+}
+
 async function saveLS(){
-  const snapshot={v:1,projects,updatedAt:Date.now()};
+  const updatedAt=Date.now();
+  const snapshot={v:1,projects,updatedAt};
+  let localSaved=true;
+  setSaveStatus('Saving...','busy');
   try{
     localStorage.setItem('mbp6',JSON.stringify(projects));
+    localStorage.setItem('mbp6_updatedAt',String(updatedAt));
   }catch(e){
+    localSaved=false;
     console.warn('MoodBoard Pro localStorage save failed',e);
     trimNonEssentialProjectData();
     try{
       localStorage.setItem('mbp6',JSON.stringify(projects));
+      localStorage.setItem('mbp6_updatedAt',String(updatedAt));
+      localSaved=true;
     }catch(e2){
       console.warn('MoodBoard Pro compact localStorage save failed',e2);
     }
+    try{
+      const dbSavedAfterLocalFail=await saveWorkspaceState(snapshot);
+      if(dbSavedAfterLocalFail){
+        console.info('MoodBoard Pro saved to IndexedDB; localStorage mirror skipped because it is too large');
+        return true;
+      }
+    }catch(e3){}
     const now=Date.now();
     if(now-_lastSaveErrorToast>15000){
       toast?.('No se pudo guardar: reduce el tamaño o número de imágenes');
       _lastSaveErrorToast=now;
     }
   }
-  saveWorkspaceState(snapshot).catch(()=>{});
-  return true;
+  try{
+    return await saveWorkspaceState(snapshot);
+  }catch(e){
+    return false;
+  }
 }
 
 function initImageAssetStore(){
@@ -187,13 +247,18 @@ function putImageAssetWithKey(key,dataUrl){
   return initImageAssetStore().then(()=>{
     const safeKey=String(key);
     _imageAssetCache.set(safeKey,dataUrl);
-    if(_imageAssetDb){
+    if(!_imageAssetDb)return safeKey;
+    return new Promise((resolve,reject)=>{
       try{
         const tx=_imageAssetDb.transaction('images','readwrite');
         tx.objectStore('images').put(dataUrl,safeKey);
-      }catch(e){}
-    }
-    return safeKey;
+        tx.oncomplete=()=>resolve(safeKey);
+        tx.onerror=()=>reject(tx.error||new Error('Image asset save failed'));
+        tx.onabort=()=>reject(tx.error||new Error('Image asset save aborted'));
+      }catch(e){
+        reject(e);
+      }
+    });
   });
 }
 
@@ -225,17 +290,19 @@ async function getImageAssetForExport(key){
 }
 
 async function registerImageAssetFromObject(img){
-  if(!img||img.type!=='image')return null;
-  const src=img.getSrc?.()||img._originalElement?.src||img._element?.src||img.src||'';
-  if(typeof src!=='string'||!src.startsWith('data:image/'))return null;
-  const key=await putImageAsset(src);
-  img.__assetKey=key;
-  return key;
+  // Runtime conversion to mbasset refs is disabled. Missing asset records make
+  // Fabric try to load mbasset:* as a real URL and permanently drop images.
+  return null;
 }
 
 function normalizeAssetRefs(value){
+  _currentCanvasHasUnresolvedAssets=false;
+  return normalizeAssetRefsDeep(value);
+}
+
+function normalizeAssetRefsDeep(value){
   if(!value||typeof value!=='object')return value;
-  if(Array.isArray(value))return value.map(normalizeAssetRefs);
+  if(Array.isArray(value))return value.map(normalizeAssetRefsDeep);
   const out={};
   Object.entries(value).forEach(([k,v])=>{
     if(k==='textBaseline'&&v==='alphabetical'){
@@ -244,12 +311,28 @@ function normalizeAssetRefs(value){
     }
     if(k==='src'&&typeof v==='string'&&v.startsWith('mbasset:')){
       const key=v.slice(8);
-      out[k]=getImageAsset(key)||v;
+      const asset=getImageAsset(key);
+      if(asset)out[k]=asset;
+      else{
+        _currentCanvasHasUnresolvedAssets=true;
+        out[k]=v;
+      }
       return;
     }
-    out[k]=normalizeAssetRefs(v);
+    out[k]=normalizeAssetRefsDeep(v);
   });
   return out;
+}
+
+function hasUnresolvedAssetRefs(value){
+  if(!value||typeof value!=='object')return false;
+  if(Array.isArray(value))return value.some(hasUnresolvedAssetRefs);
+  return Object.entries(value).some(([k,v])=>{
+    if(k==='src'&&typeof v==='string'&&v.startsWith('mbasset:')){
+      return !getImageAsset(v.slice(8));
+    }
+    return hasUnresolvedAssetRefs(v);
+  });
 }
 
 function migrateCanvasImageAssets(){
@@ -360,18 +443,9 @@ async function compactCanvasJsonAssets(json){
 }
 
 async function compactWorkspaceImageAssets(workspace=projects){
-  let changed=false;
-  for(const proj of Object.values(workspace||{})){
-    for(const cvData of Object.values(proj?.canvases||{})){
-      if(!cvData||!cvData.json)continue;
-      const res=await compactCanvasJsonAssets(cvData.json);
-      if(res.changed){
-        cvData.json=res.json;
-        changed=true;
-      }
-    }
-  }
-  return changed;
+  // Disabled for runtime safety. Inline data:image refs are larger but reliable.
+  // A missing mbasset record makes Fabric drop images on reload.
+  return false;
 }
 
 async function preloadImageAssetBundle(assets={}){
@@ -687,13 +761,13 @@ function projectStatusBadge(statusId){
 function renderProjectStatusOptions(selected='draft'){
   return PROJECT_STATUSES.map(s=>`<option value="${s.id}" ${s.id===selected?'selected':''}>${s.label}</option>`).join('');
 }
-const FABRIC_CUSTOM_PROPS=['__id','__lid','__name','__assetKey','_isSticky','_stickyColor','_isFrame','_isPolaroid'];
+const FABRIC_CUSTOM_PROPS=['__id','__lid','__name','_isSticky','_stickyColor','_isFrame','_isPolaroid'];
 
 if(typeof fabric!=='undefined'&&fabric.Image&&fabric.Image.prototype&&!fabric.Image.prototype.__mbpToObjectPatched){
   const _origImgToObject=fabric.Image.prototype.toObject;
   fabric.Image.prototype.toObject=function(propertiesToInclude){
     const obj=_origImgToObject.call(this,propertiesToInclude);
-    if(this.__assetKey)obj.src='mbasset:'+this.__assetKey;
+    delete obj.__assetKey;
     return obj;
   };
   fabric.Image.prototype.__mbpToObjectPatched=true;

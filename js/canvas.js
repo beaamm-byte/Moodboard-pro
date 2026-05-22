@@ -700,7 +700,6 @@ function addObj(o){
   o.__id=o.__id||genId();
   applyObjectControls(o);
   o.set({selectable:true,evented:true,hasControls:true,hasBorders:true});
-  if(o.type==='image')registerImageAssetFromObject(o).catch(()=>{});
   assignToLayer(o,activeLayerId);cv.add(o);rebuildCanvasZOrder();
   setTool('select');cv.setActiveObject(o);cv.requestRenderAll();
   commitCanvasChange({persistDelay:500});
