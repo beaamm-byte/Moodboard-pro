@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoodBoard Pro</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='16' fill='%23C8102E'/></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Special+Elite&family=Syne:wght@400;600;700;800&family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;600;700&family=Oswald:wght@400;600&family=Raleway:wght@400;600;700&family=Lato:wght@400;700&family=Merriweather:wght@400;700&family=Nunito:wght@400;600;700&family=Abril+Fatface&family=Bebas+Neue&family=Cormorant+Garamond:wght@400;600;700&family=Josefin+Sans:wght@400;600;700&family=Libre+Baskerville:wght@400;700&family=Poppins:wght@400;600;700&family=Roboto+Slab:wght@400;700&family=Work+Sans:wght@400;600;700&family=Crimson+Text:wght@400;600&family=Anton&family=Dancing+Script:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- TOPBAR (always visible) -->
+<div id="topbar">
+  <div class="logo" onclick="goHome()" title="Back to Projects">
+    <div class="logo-dot" style="width:9px;height:9px;border-radius:50%;background:var(--accent);flex-shrink:0;"></div>
+    <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:-.2px;color:var(--txt);">MOODBOARD</span><span style="color:var(--accent);font-weight:700;"> PRO</span>
+  </div>
+
+  <!-- Home breadcrumb / Projects button -->
+  <button class="btn" id="btn-projects" onclick="goHome()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+    Projects
+  </button>
+  <button class="btn" id="compare-btn" onclick="openCompare()" title="Compare references">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h5"/><path d="M14 5h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5"/><path d="M12 5v14"/></svg>
+    Compare
+  </button>
+  <div id="proj-crumb" style="display:none">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    <span id="crumb-proj"></span>
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    <span id="crumb-cv"></span>
+  </div>
+
+  <!-- Editor tools (hidden on home) -->
+  <div id="editor-tools" style="display:none;align-items:center;gap:4px;flex:1;">
+    <div class="sep"></div>
+    <button class="btn active" id="tool-select" onclick="setTool('select')" title="Select · V"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/></svg> Select</button>
+    <button class="btn" id="tool-draw" onclick="setTool('draw')" title="Draw · D"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg> Draw</button>
+    <button class="btn" id="tool-pan" onclick="setTool('pan')" title="Pan · Space"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0"/><path d="M14 10V4a2 2 0 0 0-4 0"/><path d="M10 10.5V6a2 2 0 0 0-4 0"/><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg> Pan</button>
+    <button class="btn" id="rulers-btn" onclick="toggleRulers()" title="Rulers · R"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 6v4M11 6v3M15 6v4M19 6v3"/><path d="M7 18v-4M11 18v-3M15 18v-4M19 18v-3"/></svg> Rulers</button>
+    <div id="draw-controls">
+      <label>SIZE</label>
+      <input type="range" id="brush-sz" min="1" max="60" value="8" oninput="updBrush()">
+      <span id="bval">8</span>
+      <input type="color" id="brush-col" value="#C8102E" onchange="updBrush()">
+    </div>
+    <div class="sep"></div>
+    <button class="btn" onclick="addText()" title="Text · T"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg> Text</button>
+    <button class="btn" onclick="addSticky()" title="Note · N"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Note</button>
+    <button class="btn" onclick="openImgModal()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Image</button>
+    <button class="btn" onclick="addShape('rect')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></button>
+    <button class="btn" onclick="addShape('circle')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg></button>
+    <div class="sep"></div>
+    <button class="btn" onclick="doUndo()" title="Ctrl+Z"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg> Undo</button>
+    <button class="btn" onclick="doRedo()" title="Ctrl+Y"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 14 20 9 15 4"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/></svg> Redo</button>
+    <div class="sep"></div>
+    <button class="btn" onclick="zOut()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg></button>
+    <div id="zlbl">100%</div>
+    <button class="btn" onclick="zIn()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></button>
+    <button class="btn" onclick="zReset()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
+    <div class="spacer"></div>
+    <button class="btn red" onclick="clearAll()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Clear</button>
+    <!-- Zen Mode -->
+    <div class="sep"></div>
+    <button class="btn" id="zen-btn" onclick="toggleZen()" title="Zen Mode (presentation)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+  </div>
+  <span id="session-timer" style="display:none">00:00:00</span>
+  <!-- Always-visible Import/Export in topbar -->
+  <div class="sep" style="margin-left:4px;"></div>
+  <button class="btn" onclick="doImport()">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    Import
+  </button>
+  <div class="export-wrap" id="export-wrap" style="position:relative;">
+    <button class="btn accent-fill" onclick="toggleExportMenu()" id="export-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left:2px"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div id="export-menu" style="display:none;position:fixed;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:6px;min-width:230px;box-shadow:0 8px 32px rgba(0,0,0,.2);z-index:30000;">
+      <div style="padding:4px 8px 2px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--txt3);">Backup</div>
+      <div class="ci" onclick="doExport('all');closeExportMenu()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        Workspace
+        <span style="font-size:10px;color:var(--txt3);margin-left:auto;">.mb</span>
+      </div>
+      <div class="ci" onclick="doExport('project');closeExportMenu()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Project
+        <span style="font-size:10px;color:var(--txt3);margin-left:auto;">.mb</span>
+      </div>
+      <div class="ci ln"></div>
+      <div style="padding:4px 8px 2px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--txt3);">PDF</div>
+      <div class="ci" onclick="expPDF('current');closeExportMenu()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Current canvas
+        <span style="font-size:10px;color:var(--txt3);margin-left:auto;">PDF</span>
+      </div>
+      <div class="ci" onclick="expPDF('project');closeExportMenu()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Project canvases
+        <span style="font-size:10px;color:var(--txt3);margin-left:auto;">PDF</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ZEN EXIT BUTTON -->
+<button id="zen-exit" onclick="toggleZen()">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+  Exit Zen
+</button>
+<!-- Zen canvas switcher strip -->
+<div id="zen-cv-strip"></div>
+
+<!-- HOME SCREEN -->
+<div class="screen active" id="home-screen">
+  <div class="home-content">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
+      <div class="home-title">Your Boards</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-shrink:0;">
+        <!-- Guide button only -->
+        <button onclick="openGuide()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--accent);border:none;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;color:#fff;cursor:pointer;transition:filter .12s;" onmouseover="this.style.filter='brightness(1.12)'" onmouseout="this.style.filter=''">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Guía de uso
+        </button>
+        <button onclick="openCompare()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;color:var(--txt);cursor:pointer;transition:all .12s;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h5"/><path d="M14 5h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5"/><path d="M12 5v14"/></svg>
+          Compare
+        </button>
+      </div>
+    </div>
+    <div class="home-sub">Dirección creativa · proyectos guardados localmente</div>
+
+    <!-- Search bar full width with live results dropdown -->
+    <div class="search-wrap" style="position:relative;margin-bottom:20px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--txt3);pointer-events:none;">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input id="home-search" type="search" placeholder="Search projects by name, tag or status..."
+        oninput="onSearchInput()" onfocus="onSearchInput()" autocomplete="off"
+        style="width:100%;height:40px;padding:0 14px 0 38px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:var(--txt);outline:none;transition:border-color .15s;">
+      <!-- Live results dropdown -->
+      <div id="search-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.13);z-index:100;overflow:hidden;"></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="home-tabs">
+      <button class="home-tab active" id="tab-projects" onclick="switchTab('projects')">Projects</button>
+      <button class="home-tab" id="tab-trash" onclick="switchTab('trash')">Trash</button>
+    </div>
+    <!-- Tag filter bar -->
+    <div class="status-filter-bar" id="status-filter-bar"></div>
+    <div class="proj-grid" id="home-proj-grid"></div>
+  </div>
+</div>
+
+<!-- EDITOR SCREEN -->
+<div class="screen" id="editor-screen">
+  <div id="layout">
+    <!-- Left sidebar: canvases -->
+    <div id="sidebar">
+      <div class="sb-hdr">
+        <div class="sb-ttl">Canvases</div>
+        <button class="ly-tool" onclick="openNewCvModal(curProj)">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New
+        </button>
+      </div>
+      <div id="cv-list" style="overflow-y:auto;flex:1;padding:4px;"></div>
+      <div class="project-palettes" id="project-palettes">
+        <div class="sb-ttl">Palettes</div>
+        <div id="project-palette-list"></div>
+      </div>
+      <!-- Layers -->
+      <div id="layers-panel">
+        <div id="layers-toolbar">
+          <div class="sb-ttl">Layers</div>
+          <button class="ly-tool" onclick="newLayer()" title="New layer"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+          <button class="ly-tool red" onclick="deleteSelectedLayers()"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
+        </div>
+        <div id="layer-list"></div>
+      </div>
+    </div>
+
+    <!-- Canvas area -->
+    <div id="cw">
+      <canvas id="c"></canvas>
+      <div id="canvas-loading" aria-hidden="true"><div class="loader"><div class="spinner"></div><span>Loading project</span></div></div>
+      <div id="drop-hl"><div style="text-align:center"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 8px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Drop image here</div></div>
+      <div id="active-layer-badge"></div>
+      <div id="guide-layer" class="guide-layer"></div>
+      <div id="ruler-corner"></div>
+      <div id="ruler-top"></div>
+      <div id="ruler-left"></div>
+      <!-- Floating prop panel -->
+      <div id="prop-panel">
+        <div id="prop-header">
+          <h4>Properties</h4>
+          <button class="pin-btn" id="pin-btn" onclick="togglePinPanel()" title="Pin to side panel">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 4-1 7H9L8 4"/><path d="M12 18v3"/><path d="m4 11 8 1 8-1"/></svg>
+          </button>
+        </div>
+        <div id="pp-scroll"></div>
+      </div>
+      <div id="crop-bar">
+        <span style="font-size:12px;font-weight:600;color:var(--txt2)">Resize the crop area</span>
+        <button class="mbtn pri" style="padding:5px 12px;font-size:12px" onclick="applyCrop()">Apply</button>
+        <button class="mbtn sec" style="padding:5px 12px;font-size:12px" onclick="cancelCrop()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Right panel (pinned props) -->
+    <div id="right-panel-wrap"></div>
+  </div>
+
+  <div id="statusbar">
+    <div id="save-indicator"><div class="sdot"></div><span id="s-save-statusbar" class="save-status">Auto-saved</span></div>
+    <span id="s-objs">0 objects</span>
+    <span id="s-pos">x:0 y:0</span>
+    <div style="flex:1"></div>
+    <span>Created by <a href="https://beatriz-moron.netlify.app" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Beatriz Morón</a> · www.beatrizmoronmarin.com</span>
+  </div>
+</div>
+
+<!-- Context menu -->
+<div id="ctxm">
+  <div class="ci" onclick="cxCopy()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy <span style="opacity:.35;font-size:10px;margin-left:auto;">Ctrl+C</span></div>
+  <div class="ci" onclick="pasteFromClipboard();closeCtx()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> Paste <span style="opacity:.35;font-size:10px;margin-left:auto;">Ctrl+V</span></div>
+  <div class="ci ln"></div>
+  <div class="ci" onclick="cxFront()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg> Bring to Front</div>
+  <div class="ci" onclick="cxBack()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 6 12 11 7 6"/><polyline points="17 13 12 18 7 13"/></svg> Send to Back</div>
+  <div class="ci" onclick="cxDupe()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Duplicate</div>
+  <div class="ci" onclick="cxNewLayer()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="12" x2="22" y2="12"/></svg> Move to New Layer</div>
+  <div class="ci" id="ctx-move-layer-item" style="display:none" onclick="cxMoveLayerOpen()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg> Move to Layer ></div>
+  <div id="ctx-layer-submenu" style="display:none;padding:2px 4px;border-top:1px solid var(--border);max-height:160px;overflow-y:auto;"></div>
+  <div class="ci ln"></div>
+  <div class="ci" onclick="cxStartCrop()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 2 6 6 2 6"/><polyline points="18 2 18 6 22 6"/><polyline points="6 22 6 18 2 18"/><polyline points="18 22 18 18 22 18"/></svg> Crop Image</div>
+  <div class="ci" onclick="cxToggleBW()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18" stroke-width="2"/></svg> Toggle B&W</div>
+  <div class="ci ln"></div>
+  <div class="ci danger" onclick="cxDelete()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg> Delete</div>
+</div>
+
+<!-- COMPARE REFERENCES SCREEN -->
+<div class="screen" id="compare-screen">
+  <div id="compare-shell">
+    <div class="compare-stage">
+      <div class="compare-head">
+        <div>
+          <div class="compare-title">Comparador visual</div>
+          <div class="compare-sub">Carga varias referencias y extrae una dirección común</div>
+        </div>
+        <div class="compare-actions">
+          <button class="btn accent-fill" id="compare-convert-btn" onclick="convertComparatorToBoard()" title="Create a moodboard from this comparison">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17h7"/><path d="M17.5 13.5v7"/></svg>
+            Convertir en board
+          </button>
+          <button class="btn" onclick="document.getElementById('compare-file-input').value='';comparePendingSlot=null;document.getElementById('compare-file-input').click()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Añadir refs
+          </button>
+          <button class="btn" onclick="openHomeFromCompare()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            Volver
+          </button>
+          <button class="btn" onclick="clearComparator()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+            Limpiar
+          </button>
+        </div>
+      </div>
+      <div class="compare-grid" id="compare-grid"></div>
+      <div class="compare-insight">
+        <div class="compare-card">
+          <h4>Dirección compartida</h4>
+          <div class="compare-common" id="compare-common"></div>
+          <div class="compare-findings" id="compare-findings" style="margin-top:12px;"></div>
+        </div>
+        <div class="compare-card">
+          <h4>Paleta compartida</h4>
+          <div class="ref-meta" style="padding:0;border:none;background:transparent;">
+            <div class="ref-palette" id="compare-overlap"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="width:270px;border-left:1px solid var(--border);padding:18px 16px;background:var(--surface);overflow:auto;">
+      <div style="font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3);margin-bottom:10px;">Cómo funciona</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--txt2);line-height:1.45;">
+        <div>Sube o suelta de 2 a 4 imágenes.</div>
+        <div>La herramienta extrae colores dominantes y métricas visuales básicas.</div>
+        <div>Usa la coincidencia de paleta para decidir la dirección común.</div>
+        <div>Puedes copiar un color al portapapeles o llevarlo al canvas después.</div>
+      </div>
+    </div>
+  </div>
+  <input type="file" id="compare-file-input" accept="image/*" multiple style="display:none" onchange="handleCompareFiles(event)">
+</div>
+<div id="layer-ctxm" style="position:fixed;z-index:2100;display:none;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:4px;min-width:190px;box-shadow:0 8px 24px rgba(0,0,0,.2);"></div>
+
+<!-- Modals -->
+<div class="mbg" id="m-proj">
+  <div class="mbox">
+    <h3 id="m-proj-t">New Project</h3>
+    <input class="minput" id="m-proj-n" placeholder="Project name..." maxlength="40">
+    <div style="margin-bottom:14px;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txt3);margin-bottom:6px;">Status</div>
+      <select class="status-select" id="m-proj-status"></select>
+    </div>
+    <!-- Tags input -->
+    <div style="margin-bottom:14px;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txt3);margin-bottom:6px;">Tags</div>
+      <div id="m-proj-tag-chips" style="display:flex;flex-wrap:wrap;gap:5px;min-height:24px;margin-bottom:8px;"></div>
+      <div style="display:flex;gap:6px;">
+        <input id="m-proj-tag-input" class="minput" placeholder="Add tag..." maxlength="20" style="margin-bottom:0;flex:1;height:32px;font-size:12px;" onkeydown="if(event.key==='Enter'){addTagFromModal();event.preventDefault();}">
+        <button class="mbtn sec" style="padding:4px 12px;" onclick="addTagFromModal()">+ Add</button>
+      </div>
+    </div>
+    <div class="mrow"><button class="mbtn sec" onclick="closeM('m-proj')">Cancel</button><button class="mbtn pri" onclick="confirmProj()">Confirm</button></div>
+  </div>
+</div>
+<div class="mbg" id="m-ly"><div class="mbox"><h3>Rename Layer</h3><input class="minput" id="m-ly-n" placeholder="Layer name..." maxlength="40"><div class="mrow"><button class="mbtn sec" onclick="closeM('m-ly')">Cancel</button><button class="mbtn pri" onclick="confirmRenameLayer()">Rename</button></div></div></div>
+<div class="mbg" id="m-cv"><div class="mbox"><h3 id="m-cv-t">New Canvas</h3><input class="minput" id="m-cv-n" placeholder="Canvas name..." maxlength="40"><div class="mrow"><button class="mbtn sec" onclick="closeM('m-cv')">Cancel</button><button class="mbtn pri" onclick="confirmCv()">Confirm</button></div></div></div>
+<div class="mbg" id="m-compare-proj"><div class="mbox"><h3>New Project</h3><input class="minput" id="m-compare-proj-n" placeholder="Project name..." maxlength="40"><div class="mrow"><button class="mbtn sec" onclick="cancelCompareProjectModal()">Cancel</button><button class="mbtn pri" onclick="confirmCompareProjectModal()">Create Board</button></div></div></div>
+<div class="mbg" id="m-img"><div class="mbox"><h3>Add Image</h3><input class="minput" id="m-img-url" placeholder="Paste image URL (https://...)"><div style="text-align:center;font-size:12px;color:var(--txt3);margin:-8px 0 12px">- or -</div><button class="mbtn sec" style="width:100%;margin-bottom:14px" onclick="document.getElementById('f-in').click()">Browse local file...</button><input type="file" id="f-in" accept="image/*" style="display:none" onchange="fileChosen(event)"><div class="mrow"><button class="mbtn sec" onclick="closeM('m-img')">Cancel</button><button class="mbtn pri" onclick="addImgURL()">Add</button></div></div></div>
+<!-- Frame / Polaroid Modal -->
+<div class="mbg" id="m-frame">
+  <div class="mbox">
+    <h3>Add Frame</h3>
+    <div style="font-size:11px;color:var(--txt3);margin-bottom:12px;">Select a style, set border thickness, then apply to the selected image.</div>
+    <div class="frame-option-row">
+      <div class="frame-option active" id="frame-opt-standard" onclick="selectFrameOpt('standard')">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 4px"><rect x="2" y="2" width="20" height="20" rx="2"/><rect x="5" y="5" width="14" height="14"/></svg>
+        Standard
+      </div>
+      <div class="frame-option" id="frame-opt-polaroid" onclick="selectFrameOpt('polaroid')">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 4px"><rect x="2" y="2" width="20" height="20" rx="2"/><rect x="4" y="4" width="16" height="11"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        Polaroid
+      </div>
+    </div>
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txt3);margin-bottom:6px;">Border Width</div>
+    <div class="frame-slider-row">
+      <input type="range" id="frame-border-sz" min="4" max="80" value="20" oninput="document.getElementById('frame-border-val').textContent=this.value+'px'">
+      <span class="frame-preview-val" id="frame-border-val">20px</span>
+    </div>
+    <div id="frame-polaroid-extra" style="display:none;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txt3);margin-bottom:6px;">Caption Text</div>
+      <input class="minput" id="frame-caption" placeholder="Caption (optional)" style="margin-bottom:14px;font-size:13px;">
+    </div>
+    <div class="mrow">
+      <button class="mbtn sec" onclick="closeM('m-frame')">Cancel</button>
+      <button class="mbtn pri" onclick="applyFrame()">Apply Frame</button>
+    </div>
+  </div>
+</div>
+<!-- CUSTOM CONFIRM DIALOG -->
+<div id="confirm-overlay">
+  <div id="confirm-box">
+    <h4 id="confirm-title">¿Estás segura?</h4>
+    <p id="confirm-msg"></p>
+    <div id="confirm-btns">
+      <button class="mbtn sec" id="confirm-cancel">Cancelar</button>
+      <button class="mbtn" id="confirm-ok" style="background:var(--red);color:#fff;border-color:var(--red);">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- GUIDE MODAL -->
+<div id="guide-overlay">
+  <div id="guide-box">
+    <div id="guide-header">
+      <div id="guide-tab-bar">
+        <button class="gtab active" id="gtab-guide" onclick="switchGuideTab('guide')">Guía de uso</button>
+        <button class="gtab" id="gtab-about" onclick="switchGuideTab('about')">Acerca de</button>
+      </div>
+      <button id="guide-close" onclick="closeGuide()">&times;</button>
+    </div>
+        <div id="guide-body">
+      <div class="guide-section-title">Proyectos & Canvas</div>
+      <div class="guide-grid">
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Crear proyectos</div>
+          <div class="guide-card-desc">Desde la pantalla de inicio, pulsa "New Project". Cada proyecto puede tener varios canvas independientes.</div>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Etiquetas (Tags)</div>
+          <div class="guide-card-desc">Al crear o editar un proyecto puedes añadir etiquetas para filtrarlos en la pantalla de inicio.</div>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Papelera</div>
+          <div class="guide-card-desc">Los proyectos eliminados van a la pestaña "Trash". Desde ahí puedes restaurarlos o borrarlos definitivamente.</div>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Guardado automático</div>
+          <div class="guide-card-desc">Todo se guarda en tu navegador automáticamente cada 10 segundos. Exporta con el botón Export para hacer backup en un archivo .mb.</div>
+        </div>
+      </div>
+
+      <div class="guide-section-title">Herramientas de diseño</div>
+      <div class="guide-grid">
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Añadir imágenes</div>
+          <div class="guide-card-desc">Pulsa "Image" en la barra, arrastra desde tu ordenador, pega una URL o usa Ctrl+V con una imagen copiada.</div>
+          <span class="guide-card-shortcut">Ctrl+V · Drag & Drop</span>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Texto</div>
+          <div class="guide-card-desc">Pulsa "Text" o la tecla T. Doble clic para editar. En el panel de propiedades puedes cambiar fuente, tamaño, estilo y color.</div>
+          <span class="guide-card-shortcut">T · Doble clic para editar</span>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Notas (Sticky Notes)</div>
+          <div class="guide-card-desc">Pulsa "Note" o la tecla N para crear una nota rápida. Úsalas para ideas, observaciones o dirección creativa.</div>
+          <span class="guide-card-shortcut">N · Doble clic para editar</span>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Dibujar</div>
+          <div class="guide-card-desc">Selecciona la herramienta "Draw" o pulsa D. Ajusta el tamaño y el color del trazo. Compatible con tableta y lápiz.</div>
+          <span class="guide-card-shortcut">D · Ajustes en panel</span>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Marco / Polaroid</div>
+          <div class="guide-card-desc">Selecciona una imagen y pulsa "Frame". Elige entre marco estándar o estilo Polaroid con caption editable.</div>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Recortar imagen</div>
+          <div class="guide-card-desc">Selecciona una imagen, abre el panel de propiedades y pulsa "Crop". Ajusta el área azul y confirma con Apply.</div>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Blanco y negro</div>
+          <div class="guide-card-desc">Selecciona una imagen y aplica B&W desde el panel de propiedades para convertirla al instante.</div>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Extraer colores</div>
+          <div class="guide-card-desc">Selecciona una imagen y usa "Extract Colors". Aparecen 5 colores dominantes para aplicar o reutilizar en el canvas.</div>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Comparador visual</div>
+          <div class="guide-card-desc">Carga 2 a 4 imágenes para comparar paleta, tono, contraste y dirección visual. Úsalo para sacar una lectura común antes de montar el tablero final.</div>
+        </div>
+      </div>
+
+      <div class="guide-section-title">Capas & Organización</div>
+      <div class="guide-grid">
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Panel de capas</div>
+          <div class="guide-card-desc">Cada elemento va a la capa activa. Crea nuevas capas con el botón + y arrastra el handle para reordenarlas.</div>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Renombrar capas</div>
+          <div class="guide-card-desc">Doble clic sobre el nombre de una capa para cambiarlo por algo más descriptivo.</div>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Bloquear capa</div>
+          <div class="guide-card-desc">Activa el candado para impedir mover o editar los objetos de esa capa mientras trabajas.</div>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Capas anidadas</div>
+          <div class="guide-card-desc">Las capas padre organizan objetos y capas hijas debajo de ellas. Selecciona una capa para ver sus elementos y usa el orden visual para estructurar el board sin pensar en grupos clásicos.</div>
+        </div>
+      </div>
+
+      <div class="guide-section-title">Atajos de teclado</div>
+      <div class="guide-grid">
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Navegación</div>
+          <div class="guide-card-desc"><b>V</b> — Seleccionar · <b>D</b> — Dibujar<br><b>Espacio</b> (mantener) — Mover canvas<br><b>T</b> — Añadir texto · <b>N</b> — Añadir nota<br><b>Scroll</b> — Zoom in/out</div>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Edición</div>
+          <div class="guide-card-desc"><b>Ctrl+C</b> — Copiar<br><b>Ctrl+V</b> — Pegar (incluso entre canvas)<br><b>Ctrl+D</b> — Duplicar en sitio<br><b>Ctrl+Alt+D</b> — Duplicar en nueva capa<br><b>Supr/Backspace</b> — Eliminar</div>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Historial</div>
+          <div class="guide-card-desc"><b>Ctrl+Z</b> — Deshacer<br><b>Ctrl+Y</b> — Rehacer<br><b>Escape</b> — Salir de modo actual</div>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Modo Zen</div>
+          <div class="guide-card-desc">El botón Zen de la topbar oculta la interfaz y deja el board en modo presentación limpia. Cambia de canvas desde la barra inferior. No muestra reglas ni guías y no permite editar.</div>
+        </div>
+      </div>
+
+      <div class="guide-section-title">Consejos pro</div>
+      <div class="guide-grid">
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Clic derecho</div>
+          <div class="guide-card-desc">Clic derecho sobre cualquier objeto para acceder a: Copiar, Pegar, Duplicar, Mover a nueva capa, Crop, B&W y más.</div>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Panel de propiedades</div>
+          <div class="guide-card-desc">Arrastra el panel desde su cabecera para moverlo. Pulsa el icono de fijar para anclarlo como sidebar derecho fijo.</div>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Reglas y guías</div>
+          <div class="guide-card-desc">Activa el botón de reglas para verlas en el canvas. Arrastra desde la regla superior para crear una guía vertical o desde la lateral para crear una horizontal. Las guías manuales son azules y las automáticas al mover objetos son rojas.</div>
+        </div>
+        <div class="guide-card">
+          <span class="guide-card-icon">i</span>
+          <div class="guide-card-title">Export / Import .mb</div>
+          <div class="guide-card-desc">Exporta tu workspace completo en formato .mb para hacer backup o transferirlo. Solo se puede abrir en MoodBoard Pro.</div>
+        </div>
+      </div>
+    </div><!-- end guide-body -->
+
+    <!-- ABOUT TAB -->
+    <div id="guide-about-panel" style="display:none;overflow-y:auto;padding:32px 36px;flex:1;">
+      <div style="max-width:480px;margin:0 auto;">
+        <div style="font-size:32px;margin-bottom:16px;">*</div>
+        <h3 style="font-size:20px;font-weight:800;color:var(--txt);margin-bottom:8px;letter-spacing:-.3px;">MoodBoard Pro</h3>
+        <p style="font-size:13px;color:var(--txt2);line-height:1.7;margin-bottom:16px;">Esta herramienta la he creado para agilizar mi propio proceso creativo como Directora Creativa, y ahora la comparto contigo.</p>
+        <p style="font-size:13px;color:var(--txt2);line-height:1.7;margin-bottom:16px;">Sin suscripciones, sin nube, sin distracciones. Todo se guarda directamente en tu navegador. Es tuya.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;">
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;">
+            <div style="font-size:20px;margin-bottom:6px;">ðŸŽ¨</div>
+            <strong style="font-size:12px;color:var(--txt);display:block;margin-bottom:3px;">Moodboards visuales</strong>
+            <span style="font-size:11px;color:var(--txt3);">Arrastra imágenes, añade texto, marcos polaroid y paletas de color.</span>
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;">
+            <div style="font-size:20px;margin-bottom:6px;">ðŸ“</div>
+            <strong style="font-size:12px;color:var(--txt);display:block;margin-bottom:3px;">Proyectos organizados</strong>
+            <span style="font-size:11px;color:var(--txt3);">Crea proyectos con múltiples canvas y etiquetas por campaña, temporadas o tendencias.</span>
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;">
+            <div style="font-size:20px;margin-bottom:6px;">ðŸ–Š</div>
+            <strong style="font-size:12px;color:var(--txt);display:block;margin-bottom:3px;">Diseño editorial</strong>
+            <span style="font-size:11px;color:var(--txt3);">Marcos blancos, estilo polaroid, capas, tipografías y más.</span>
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;">
+            <div style="font-size:20px;margin-bottom:6px;">!</div>
+            <strong style="font-size:12px;color:var(--txt);display:block;margin-bottom:3px;">Guardado automático</strong>
+            <span style="font-size:11px;color:var(--txt3);">Todo en localStorage. Sin login. Sin pérdidas.</span>
+          </div>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:20px;text-align:center;">
+          <p style="font-size:12px;color:var(--txt3);margin-bottom:10px;">Creado por</p>
+          <a href="https://beatriz-moron.netlify.app" target="_blank" style="color:var(--accent);text-decoration:none;font-size:15px;font-weight:800;letter-spacing:-.3px;">Beatriz Morón</a>
+          <p style="font-size:11px;color:var(--txt3);margin-top:4px;">Dirección Creativa & Estrategia de Imagen</p>
+        </div>
+      </div>
+    </div><!-- end guide-about-panel -->
+
+    <div id="guide-footer">
+      <small>Creado por <a href="https://beatriz-moron.netlify.app" target="_blank">Beatriz Morón</a> · Dirección Creativa & Estrategia de Imagen</small>
+      <button class="mbtn pri" onclick="closeGuide()">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<!-- FEEDBACK BUTTON + MODAL -->
+<button id="feedback-btn" onclick="openFeedback()" title="Feedback & Sugerencias" style="position:fixed;bottom:20px;right:20px;z-index:800;width:42px;height:42px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 4px 16px rgba(200,16,46,.4);transition:transform .15s;font-size:22px;font-weight:700;font-family:'Space Grotesk',sans-serif;line-height:1;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">?</button>
+
+<div class="mbg" id="m-feedback">
+  <div class="mbox" style="max-width:400px;">
+    <h3 style="margin-bottom:6px;">ðŸ’¬ Feedback & Sugerencias</h3>
+    <p style="font-size:12px;color:var(--txt3);margin-bottom:14px;">¿Tienes una idea o encontraste algo raro? Escríbeme directamente.</p>
+    <input class="minput" id="fb-email" type="email" placeholder="Tu correo (para que pueda responderte)" style="margin-bottom:8px;">
+    <textarea id="fb-msg" class="minput" placeholder="Tu mensaje..." rows="4" style="resize:vertical;height:90px;font-family:'Space Grotesk',sans-serif;"></textarea>
+    <div class="mrow" style="margin-top:12px;">
+      <button class="mbtn sec" onclick="closeM('m-feedback')">Cancelar</button>
+      <button class="mbtn pri" onclick="sendFeedback()">Enviar ></button>
+    </div>
+  </div>
+</div>
+<!-- Canvas item right-click menu -->
+<div id="cv-ctxm" style="position:fixed;z-index:2000;display:none;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:4px;min-width:170px;box-shadow:0 8px 24px rgba(0,0,0,.2);">
+  <div class="ci" id="cvc-switch">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/></svg> Open Canvas
+  </div>
+  <div class="ci" id="cvc-rename">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Rename
+  </div>
+  <div class="ci" id="cvc-dupe">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Duplicate Canvas
+  </div>
+  <div class="ci" id="cvc-pdf">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Export as PDF
+  </div>
+  <div class="ci ln"></div>
+  <div class="ci danger" id="cvc-del">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Delete Canvas
+  </div>
+</div>
+
+<input type="file" id="imp-in" accept=".mb" style="display:none" onchange="handleImport(event)">
+<div class="mbg" id="m-import">
+  <div class="mbox" style="max-width:380px;">
+    <h3>Import</h3>
+    <p style="font-size:12px;color:var(--txt3);margin-bottom:14px;">Choose how you want to import the file.</p>
+    <div class="mrow" style="margin-bottom:14px;">
+      <button class="mbtn sec" style="flex:1" onclick="chooseImportMode('workspace')">
+        Workspace
+      </button>
+      <button class="mbtn sec" style="flex:1" onclick="chooseImportMode('project')">
+        Project
+      </button>
+    </div>
+    <div class="mrow">
+      <button class="mbtn sec" onclick="closeM('m-import')">Cancel</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<!-- WELCOME POPUP -->
+<div id="welcome-overlay" style="display:none;">
+  <div id="welcome-box">
+    <div id="welcome-header">
+      <div id="welcome-dot"></div>
+      <h1>Bienvenida a<br>MoodBoard Pro</h1>
+      <p>Un espacio creativo personal, pensado para guardar tus referencias e inspiraciones visuales. Convierte conceptos abstractos en imágenes, colores y texturas.</p>
+    </div>
+    <div id="welcome-body">
+      <p>He creado esta herramienta para agilizar mi proceso creativo, y ahora quiero que tú también la uses. Sin cuentas, sin suscripciones y sin que tus datos salgan de tu equipo. Solo tú y tu inspiración.</p>
+      <div class="welcome-features">
+        <div class="wf-item"><div class="wf-icon">ðŸŽ¨</div><div class="wf-text"><strong>Curaduría visual</strong><span>Arrastra las imágenes directamente de la web o de tu equipo, a web. Define el ADN de tu idea mediante texturas, notas y paletas cromáticas.</span></div></div>
+        <div class="wf-item"><div class="wf-icon">ðŸ“</div><div class="wf-text"><strong>Workflows Dinámicos</strong><span>De la idea al concepto. Expande tu narrativa en proyectos con múltiples canvas para separar ideas, temporadas o campañas en un solo lugar.</span></div></div>
+        <div class="wf-item"><div class="wf-icon">ðŸ–Š</div><div class="wf-text"><strong>Vista editorial</strong><span>Sal de la edición y entra en la experiencia. Previsualiza tu narrativa visual a pantalla completa.</span></div></div>
+        <div class="wf-item"><div class="wf-icon">!</div><div class="wf-text"><strong>Autoguardado y privacidad</strong><span>Tu proyecto se guarda cada diez segundos. Además todo se queda en tu navegador. Sin login, sin esperas, sin pérdidas.</span></div></div>
+      </div>
+    </div>
+    <div id="welcome-footer">
+      <small>Creado por <a href="https://beatriz-moron.netlify.app" target="_blank">Beatriz Morón</a> · Dirección Creativa & Estrategia de Imagen</small>
+      <button class="mbtn pri" onclick="closeWelcome()" style="flex-shrink:0;">Empezar ></button>
+    </div>
+  </div>
+</div>
+
+<script src="js/state.js"></script>
+<script>
+window.MBP_BUILD='drag-image-fix-2026-05-17e';
+console.info('MoodBoard Pro build:',window.MBP_BUILD);
+(function patchCanvasTextBaseline(){
+  const proto=window.CanvasRenderingContext2D?.prototype;
+  if(!proto||proto.__mbpBaselinePatch)return;
+  const desc=Object.getOwnPropertyDescriptor(proto,'textBaseline');
+  if(!desc?.get||!desc?.set)return;
+  Object.defineProperty(proto,'textBaseline',{
+    get(){return desc.get.call(this);},
+    set(value){desc.set.call(this,value==='alphabetical'?'alphabetic':value);},
+    configurable:true,
+    enumerable:desc.enumerable
+  });
+  proto.__mbpBaselinePatch=true;
+})();
+// -
+// BOOT
+// -
+window.addEventListener('DOMContentLoaded',()=>{
+  initImageAssetStore?.().catch(()=>{});
+  const workspaceReady=loadLS();
+  initCanvas();
+  setInterval(autoSave,8000);
+  makePropDraggable();
+  initDrawControls();
+  replaceDecorativeEmojiIcons();
+
+  workspaceReady.then(fromWorkspace=>{
+    if(!Object.keys(projects).length){
+      const pid=createProj('My First Project'); createCv(pid,'Board 1');
+    } else if(!fromWorkspace){
+      setTimeout(()=>{compactWorkspaceImageAssets().then(changed=>{if(changed)saveLS();}).catch(()=>{});},0);
+    }
+    const lastProj=localStorage.getItem('mbp_last_proj');
+    const lastCv=localStorage.getItem('mbp_last_cv');
+    if(lastProj&&projects[lastProj]&&lastCv&&projects[lastProj].canvases[lastCv]){
+      openEditor(lastProj,lastCv);
+      return;
+    }
+    renderHome();
+    showScreen('home-screen');
+  }).catch(()=>{
+    if(!Object.keys(projects).length){
+      const pid=createProj('My First Project'); createCv(pid,'Board 1');
+    }
+    renderHome();
+    showScreen('home-screen');
+  });
+
+});
+
+function initCanvas(){
+  const cw=document.getElementById('cw');
+  cv=new fabric.Canvas('c',{
+    width:cw.clientWidth,height:cw.clientHeight,
+    backgroundColor:null,preserveObjectStacking:true,
+    selection:true,selectionColor:'rgba(200,16,46,0.07)',
+    selectionBorderColor:'#C8102E',selectionLineWidth:1,
+    allowTouchScrolling:false,
+    enableRetinaScaling:true,
+  });
+  // Force transparent background - Fabric sometimes resets it
+  cv.backgroundColor=null;
+  cv.lowerCanvasEl.style.background='transparent';
+  // Enable pointer events so pen tablets work identically to mouse
+  cv.upperCanvasEl.style.touchAction='none';
+  cv.lowerCanvasEl.style.touchAction='none';
+  updBrush();
+  cv.on('object:added',onMod);
+  cv.on('object:modified',()=>commitCanvasChange({historyDelay:250,persistDelay:700}));
+  cv.on('object:removed',onMod);
+  cv.on('path:created',onPathCreated);
+  let _propDebounce=null;
+  const debouncedShowProp=()=>{
+    clearTimeout(_propDebounce);
+    _propDebounce=setTimeout(()=>{ propTarget=cv.getActiveObject(); showPropPanel(); },120);
+  };
+  cv.on('selection:created',()=>{ propTarget=cv.getActiveObject(); syncLayerSelectionFromCanvas(); debouncedShowProp(); });
+  cv.on('selection:updated',()=>{ propTarget=cv.getActiveObject(); syncLayerSelectionFromCanvas(); debouncedShowProp(); });
+  cv.on('selection:cleared',()=>{ clearTimeout(_propDebounce); renderLayers(); if(!propPinned)hidePropPanel(); });
+  cv.on('mouse:down',evDown);
+  cv.on('mouse:move',evMove);
+  cv.on('mouse:up',evUp);
+  cv.on('mouse:wheel',evWheel);
+  cv.on('after:render',()=>{renderRulers();renderGuideLayer();});
+  cv.wrapperEl.addEventListener('contextmenu',e=>{
+    e.preventDefault();
+    if(tool==='draw'){positionDrawControls(e.clientX,e.clientY);return;}
+    openCtx(e.clientX,e.clientY);
+  });
+  document.addEventListener('mousedown',e=>{if(!e.target.closest('#ctxm'))closeCtx();});
+  const cwEl=document.getElementById('cw');
+  cwEl.addEventListener('dragover',e=>{e.preventDefault();document.getElementById('drop-hl').classList.add('on');});
+  cwEl.addEventListener('dragleave',()=>document.getElementById('drop-hl').classList.remove('on'));
+  cwEl.addEventListener('drop',evDrop);
+  document.getElementById('ruler-top')?.addEventListener('pointerdown',e=>startGuideDrag('x',e));
+  document.getElementById('ruler-left')?.addEventListener('pointerdown',e=>startGuideDrag('y',e));
+  document.addEventListener('paste',evPaste);
+  document.addEventListener('keydown',evKey);
+  window.addEventListener('resize',()=>{
+    fitEditorCanvas();
+  });
+}
+
+// -
+// SCREEN ROUTING
+// -
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const isEditor=id==='editor-screen';
+  document.getElementById('editor-tools').style.display=isEditor?'flex':'none';
+  document.getElementById('proj-crumb').style.display=isEditor?'flex':'none';
+  document.getElementById('compare-btn')?.classList.toggle('active',id==='compare-screen');
+}
+
+function goHome(){
+  try{autoSave();}catch(e){console.warn('Autosave before home failed',e);}
+  localStorage.removeItem('mbp_last_proj');
+  localStorage.removeItem('mbp_last_cv');
+  renderHome();
+  showScreen('home-screen');
+}
+
+</script>
+<script src="js/compare.js"></script>
+<script>
+// -
+// LAYER SYSTEM
+</script>
+<script src="js/canvas.js"></script>
+<script>
+// -
+// ADD OBJECTS
+// -
+function addObj(o){
+  ensureDefaultLayer();
+  const activeLayer=getActiveLayer();
+  if(activeLayer?.locked){
+    const openLayer=layers.find(l=>!l.locked&&l.visible!==false);
+    if(openLayer)activeLayerId=openLayer.id;
+    else return toast('Unlock a layer before adding objects');
+  }
+  o.__id=o.__id||genId();
+  applyObjectControls(o);
+  o.set({selectable:true,evented:true,hasControls:true,hasBorders:true});
+  assignToLayer(o,activeLayerId);cv.add(o);rebuildCanvasZOrder();
+  setTool('select');cv.setActiveObject(o);cv.requestRenderAll();
+  commitCanvasChange({persistDelay:500});
+}
+function applyObjectControls(o){
+  if(!o)return;
+  o.set({
+    borderColor:'#C8102E',
+    cornerColor:'#C8102E',
+    cornerStrokeColor:'#ffffff',
+    editingBorderColor:'#C8102E',
+    transparentCorners:false,
+    cornerSize:10,
+  });
+}
+function normalizeTextBox(o){
+  if(!o||!['i-text','text','textbox'].includes(o.type))return;
+  if(o.isEditing)return;
+  applyObjectControls(o);
+  o.set({
+    originX:'left',
+    originY:'top',
+    padding:8,
+    splitByGrapheme:false,
+    objectCaching:false,
+    noScaleCache:true,
+  });
+  o.initDimensions&&o.initDimensions();
+  o.setCoords();
+  cv?.requestRenderAll();
+}
+function addText(){
+  const txt=new fabric.Textbox('Double-click to edit',{
+    left:cv.width/2-145,
+    top:cv.height/2-22,
+    width:290,
+    fontFamily:'Syne',
+    fontSize:24,
+    fill:'#111827',
+    fontWeight:'700',
+    lineHeight:1.18,
+    textAlign:'left',
+    editingBorderColor:'#C8102E',
+    cornerColor:'#C8102E',
+    borderColor:'#C8102E',
+  });
+  normalizeTextBox(txt);
+  txt.on('editing:exited',()=>{normalizeTextBox(txt);commitCanvasChange({historyDelay:200,persistDelay:600});});
+  addObj(txt);
+  if(document.fonts?.ready){
+    document.fonts.ready.then(()=>{normalizeTextBox(txt);commitCanvasChange({historyDelay:200,persistDelay:600});});
+  }else{
+    setTimeout(()=>normalizeTextBox(txt),250);
+  }
+}
+function addSticky(){
+  const bg=STICKY_PALS[Math.floor(Math.random()*STICKY_PALS.length)];
+  const sticky=createStickyGroup(cv.width/2, cv.height/2, bg, 'Your note...');
+  attachStickyDblClick(sticky,bg);
+  addObj(sticky);
+  return;
+  const noteW=200, noteH=170, pad=12;
+
+  // With Fabric groups, children are positioned relative to group center
+  // Group center = 0,0, so rect at 0,0 is centered
+  const r=new fabric.Rect({
+    width:noteW, height:noteH, fill:bg, rx:6, ry:6,
+    shadow:new fabric.Shadow({color:'rgba(0,0,0,0.12)',blur:12,offsetX:2,offsetY:4}),
+    originX:'center', originY:'center',
+    left:0, top:0,
+  });
+
+  const t=new fabric.Textbox('Your note...',{
+    width:noteW-pad*2,
+    fontSize:13, fontFamily:'DM Mono',
+    fill:'#374151',
+    editable:true,
+    splitByGrapheme:false,
+    breakWords:true,
+    originX:'left', originY:'top',
+    // Position top-left of text relative to group center
+    left:-(noteW/2)+pad,
+    top:-(noteH/2)+pad,
+  });
+
+  const g=new fabric.Group([r,t],{
+    left:cv.width/2,
+    top:cv.height/2,
+    originX:'center', originY:'center',
+    subTargetCheck:true,
+    _isSticky:true, _stickyColor:bg,
+  });
+
+  attachStickyDblClick(g,bg);
+  addObj(g);
+}
+
+function findEditableText(items){
+  return items.find(o=>o.type==='textbox'||o.type==='i-text'||o.type==='text');
+}
+
+function templateLayer(name){
+  const id=newLayer(name);
+  return id;
+}
+function addTemplateObject(o,layerId){
+  o.__id=o.__id||genId();
+  applyObjectControls(o);
+  o.set({selectable:true,evented:true,hasControls:true,hasBorders:true});
+  assignToLayer(o,layerId);
+  cv.add(o);
+  return o;
+}
+function createStickyGroup(left, top, bg, text, opts={}){
+  const r=new fabric.Rect({
+    width:STICKY_W, height:STICKY_H, fill:bg, rx:6, ry:6,
+    shadow:new fabric.Shadow({color:'rgba(0,0,0,0.12)',blur:12,offsetX:2,offsetY:4}),
+    originX:'center', originY:'center',
+    left:0, top:0,
+  });
+  const t=new fabric.Textbox(text||'',{
+    width:STICKY_W-STICKY_PAD*2,
+    fontSize:opts.fontSize||13,
+    fontFamily:'DM Mono',
+    fill:'#374151',
+    editable:true,
+    splitByGrapheme:false,
+    breakWords:true,
+    originX:'left', originY:'top',
+    left:-(STICKY_W/2)+STICKY_PAD,
+    top:-(STICKY_H/2)+STICKY_PAD,
+  });
+  fitStickyTextbox(t, STICKY_H-STICKY_PAD*2);
+  const g=new fabric.Group([r,t],{
+    left, top,
+    originX:'center', originY:'center',
+    subTargetCheck:true,
+    _isSticky:true, _stickyColor:bg,
+  });
+  if(opts.angle!=null)g.set('angle',opts.angle);
+  if(opts.scaleX!=null)g.set('scaleX',opts.scaleX);
+  if(opts.scaleY!=null)g.set('scaleY',opts.scaleY);
+  if(opts.__id)g.__id=opts.__id;
+  if(opts.__lid)g.__lid=opts.__lid;
+  return g;
+}
+
+function restoreCanvasBehaviors(){
+  if(!cv)return;
+  cv.getObjects().forEach(o=>{
+    applyObjectControls(o);
+    if(o.type==='textbox'||o.type==='i-text'||o.type==='text'){
+      normalizeTextBox(o);
+      o.on('editing:exited',()=>{normalizeTextBox(o);commitCanvasChange({historyDelay:200,persistDelay:600});});
+    }
+    if(o.type==='group'&&o.getObjects){
+      const items=o.getObjects();
+      const hasText=!!findEditableText(items);
+      const hasImage=items.some(x=>x.type==='image');
+      const hasRect=items.some(x=>x.type==='rect');
+      if(hasText&&hasRect&&!hasImage&&!o._isSticky){o._isSticky=true;o._stickyColor=o._stickyColor||items.find(x=>x.type==='rect')?.fill||STICKY_PALS[0];}
+      if(hasText&&hasImage&&!o._isPolaroid){o._isFrame=true;o._isPolaroid=true;}
+    }
+    if(o._isSticky) attachStickyDblClick(o, o._stickyColor || STICKY_PALS[0]);
+    if(o._isPolaroid) attachPolaroidDblClick(o);
+  });
+}
+
+function fitStickyTextbox(tb, maxH){
+  if(!tb)return;
+  tb.set({width:STICKY_W-STICKY_PAD*2, splitByGrapheme:false, breakWords:true});
+  tb.initDimensions();
+  let guard=0;
+  while(tb.height>maxH && tb.fontSize>8 && guard<12){
+    tb.set('fontSize',tb.fontSize-1);
+    tb.initDimensions();
+    guard++;
+  }
+}
+
+// Attach dblclick-to-edit on a sticky group - reusable after regroup
+function attachStickyDblClick(grp, bg){
+  grp.off('mousedblclick');
+  grp.on('mousedblclick', function(){
+    const g       = this;
+    const allItems= g.getObjects();
+    const itext   = findEditableText(allItems);
+    if (!itext) return;
+
+    const grpLeft = g.left, grpTop = g.top;
+    const stickyColor = g._stickyColor || bg;
+    const layerId = g.__lid || activeLayerId;
+    const originalId = g.__id || genId();
+    const originalAngle = g.angle || 0;
+    const originalScaleX = g.scaleX || 1;
+    const originalScaleY = g.scaleY || 1;
+
+    // Break group - individual objects on canvas
+    g.toActiveSelection();
+    cv.discardActiveObject();
+
+    allItems.forEach(o => { o.selectable = false; o.evented = false; });
+    const bgRect = allItems.find(o=>o.type==='rect');
+    if(bgRect)bgRect.set({left:grpLeft, top:grpTop, originX:'center', originY:'center', width:STICKY_W, height:STICKY_H});
+    itext.selectable = true;
+    itext.evented    = true;
+    itext.set({
+      left:grpLeft-(STICKY_W/2)+STICKY_PAD,
+      top:grpTop-(STICKY_H/2)+STICKY_PAD,
+      width:STICKY_W-STICKY_PAD*2,
+      splitByGrapheme:false,
+      breakWords:true,
+      originX:'left',
+      originY:'top',
+    });
+    itext.setCoords();
+    itext.on('changed',()=>{fitStickyTextbox(itext,STICKY_H-STICKY_PAD*2);cv.requestRenderAll();});
+
+    cv.setActiveObject(itext);
+    itext.enterEditing();
+    cv.renderAll();
+
+    const regroup = () => {
+      itext.off('editing:exited', regroup);
+      itext.off('changed');
+      itext.exitEditing();
+
+      const nextText = itext.text || '';
+      const nextFontSize = itext.fontSize || 13;
+
+      const stillOn = allItems.filter(o => cv.getObjects().includes(o));
+      stillOn.forEach(o => cv.remove(o));
+
+      // Re-create group - Fabric will auto-center children
+      const ng = createStickyGroup(grpLeft, grpTop, stickyColor, nextText, {
+        fontSize: nextFontSize,
+        angle: originalAngle,
+        scaleX: originalScaleX,
+        scaleY: originalScaleY,
+        __id: originalId,
+        __lid: layerId,
+      });
+      ng.set({ selectable:true, evented:true, hasControls:true, hasBorders:true });
+
+      attachStickyDblClick(ng, stickyColor);
+      cv.add(ng);
+      cv.setActiveObject(ng);
+      assignToLayer(ng, layerId);
+      rebuildCanvasZOrder();
+      cv.renderAll();
+      commitCanvasChange({persistDelay:500});
+    };
+
+    itext.on('editing:exited', regroup);
+  });
+}
+function addShape(type){
+  const col='#C8102E';
+  addObj(type==='rect'
+    ?new fabric.Rect({left:cv.width/2-70,top:cv.height/2-45,width:140,height:90,fill:col+'33',stroke:col,strokeWidth:2,rx:4})
+    :new fabric.Circle({left:cv.width/2-55,top:cv.height/2-55,radius:55,fill:col+'33',stroke:col,strokeWidth:2})
+  );
+}
+
+// -
+// IMAGES
+// -
+function openImgModal(){document.getElementById('m-img-url').value='';openM('m-img');}
+function addImgURL(){const u=document.getElementById('m-img-url').value.trim();if(!u)return;closeM('m-img');loadImg(u);}
+function isImageFile(file){
+  return !!file&&(file.type?.startsWith('image/')||/\.(jpe?g|png|gif|webp|svg|bmp|avif)$/i.test(file.name||''));
+}
+function readFileAsDataUrl(file){
+  return new Promise((resolve,reject)=>{
+    const rd=new FileReader();
+    rd.onload=ev=>resolve(ev.target.result);
+    rd.onerror=reject;
+    rd.readAsDataURL(file);
+  });
+}
+function imageElementFromSource(src,crossOrigin=null){
+  return new Promise((resolve,reject)=>{
+    const el=new Image();
+    if(crossOrigin)el.crossOrigin=crossOrigin;
+    el.onload=()=>resolve(el);
+    el.onerror=reject;
+    el.src=src;
+  });
+}
+function imageElementFromSourceWithTimeout(src,crossOrigin=null,timeoutMs=8000){
+  return new Promise((resolve,reject)=>{
+    const el=new Image();
+    let done=false;
+    const finish=(fn,value)=>{
+      if(done)return;
+      done=true;
+      clearTimeout(timer);
+      fn(value);
+    };
+    const timer=setTimeout(()=>finish(reject,new Error('Image load timed out')),timeoutMs);
+    if(crossOrigin)el.crossOrigin=crossOrigin;
+    el.onload=()=>finish(resolve,el);
+    el.onerror=()=>finish(reject,new Error('Image load failed'));
+    el.src=src;
+  });
+}
+async function addImageElementToCanvas(el,src,dx,dy,assetKey=null,inlineSrc=false){
+  const img=new fabric.Image(el);
+  if(!img||!img.width)return toast('Could not load image');
+  const mw=cv.width*.45,mh=cv.height*.45;
+  if(img.width>mw||img.height>mh)img.scale(Math.min(mw/img.width,mh/img.height));
+  const center=typeof screenToCanvasPoint==='function'
+    ?screenToCanvasPoint(window.innerWidth/2,window.innerHeight/2)
+    :new fabric.Point(cv.width/2,cv.height/2);
+  img.set({left:dx??center.x-img.getScaledWidth()/2,top:dy??center.y-img.getScaledHeight()/2});
+  delete img.__assetKey;
+  addObj(img);
+  const saved=await autoSave?.();
+  try{
+    const savedJson=projects?.[curProj]?.canvases?.[curCv]?.json||'';
+    const parsed=savedJson?JSON.parse(savedJson):null;
+    const jsonImages=(parsed?.canvas?.objects||parsed?.objects||[]).filter(o=>o.type==='image');
+    console.info('MBP image added', {
+      width:img.width,
+      height:img.height,
+      left:img.left,
+      top:img.top,
+      saved,
+      canvasImages:cv.getObjects().filter(o=>o.type==='image').length,
+      jsonImages:jsonImages.length,
+      lastJsonImageSrc:String(jsonImages.at(-1)?.src||'').slice(0,32),
+      jsonLength:savedJson.length
+    });
+  }catch(e){
+    console.info('MBP image added', {width:img.width,height:img.height,left:img.left,top:img.top,saved});
+  }
+}
+async function loadImageFile(file,dx,dy){
+  if(!file)return;
+  console.info('MBP image file selected', {name:file.name,type:file.type,size:file.size});
+  if(!isImageFile(file))return toast('El archivo no parece ser una imagen');
+  try{
+    const dataUrl=await readFileAsDataUrl(file);
+    const el=await imageElementFromSourceWithTimeout(dataUrl,null,8000);
+    await addImageElementToCanvas(el,dataUrl,dx,dy,null,true);
+  }catch(e){
+    try{
+      const dataUrl=await readFileAsDataUrl(file);
+      const el=await imageElementFromSourceWithTimeout(dataUrl,null,8000);
+      await addImageElementToCanvas(el,dataUrl,dx,dy);
+    }catch(e2){
+      console.error('MBP image file load failed', e, e2);
+      toast('No se pudo cargar la imagen');
+    }
+  }
+}
+async function loadImageBlob(blob,dx,dy){
+  if(!blob)return;
+  try{
+    const dataUrl=await readFileAsDataUrl(blob);
+    const el=await imageElementFromSourceWithTimeout(dataUrl,null,8000);
+    await addImageElementToCanvas(el,dataUrl,dx,dy,null,true);
+  }catch(e){
+    console.error('MBP image file load failed', e);
+    toast('No se pudo cargar la imagen');
+  }
+}
+function fileChosen(e){const f=e.target.files[0];if(!f)return;closeM('m-img');loadImageFile(f);e.target.value='';}
+async function loadImg(url,dx,dy){
+  const useCors=typeof url==='string'&&/^https?:\/\//i.test(url);
+  console.info('MBP load image source', {source:String(url).slice(0,120),useCors,dx,dy});
+  try{
+    const el=await imageElementFromSourceWithTimeout(url,useCors?'anonymous':null,8000);
+    await addImageElementToCanvas(el,url,dx,dy);
+  }catch(e){
+    if(!useCors)return toast('Could not load image');
+    try{
+      const el=await imageElementFromSourceWithTimeout(url,null,8000);
+      await addImageElementToCanvas(el,url,dx,dy);
+    }catch(e2){
+      console.error('MBP remote image load failed', e, e2);
+      toast('Could not load image');
+    }
+  }
+}
+
+// -
+// EYEDROPPER
+// -
+function startEyedropper(targetObj, prop, onSampleCb){
+  eyedropperActive=true; eyedropperTarget=targetObj; eyedropperProp=prop;
+  document.getElementById('cw').classList.add('eyedropper-mode');
+  toast('Click anywhere on the canvas to sample a color');
+  const handler=(opt)=>{
+    const pointer=cv.getPointer(opt.e);
+    const col=sampleColor(Math.round(pointer.x),Math.round(pointer.y));
+    if(col){
+      if(onSampleCb){
+        onSampleCb(col);
+      } else if(eyedropperTarget&&eyedropperProp){
+        eyedropperTarget.set(eyedropperProp,col);
+        cv.renderAll(); showPropPanel();
+      }
+      toast('Color sampled: '+col);
+    }
+    eyedropperActive=false; eyedropperTarget=null; eyedropperProp=null;
+    document.getElementById('cw').classList.remove('eyedropper-mode');
+    cv.off('mouse:down',handler);
+  };
+  cv.on('mouse:down',handler);
+}
+
+function sampleColor(x,y){
+  try{
+    const lowerCanvas=document.querySelector('#c');
+    const ctx=lowerCanvas.getContext('2d');
+    const px=ctx.getImageData(x,y,1,1).data;
+    // Return hex instead of rgb so it works directly in color inputs
+    const toHex=n=>n.toString(16).padStart(2,'0');
+    return`#${toHex(px[0])}${toHex(px[1])}${toHex(px[2])}`;
+  }catch(e){return null;}
+}
+
+// -
+// CROP  (clipPath approach - correct in Fabric.js 5.x)
+// -
+function startCrop(){
+  const img=cv.getActiveObject();
+  if(!img||img.type!=='image')return toast('Select an image first');
+  cropTarget=img;
+
+  // Get image bounding rect in canvas coords
+  const ib=img.getBoundingRect(true,true);
+
+  // Remove any existing clipPath so the full image shows during crop
+  img._preCropClip=img.clipPath||null;
+  img.clipPath=null;
+  cv.discardActiveObject();
+  cv.renderAll();
+
+  // Create crop overlay rect, constrained to image bounds
+  cropRect=new fabric.Rect({
+    left:ib.left, top:ib.top, width:ib.width, height:ib.height,
+    fill:'rgba(200,16,46,0.08)', stroke:'#C8102E', strokeWidth:2,
+    strokeDashArray:[6,4], selectable:true, evented:true,
+    hasControls:true, hasBorders:false, lockRotation:true,
+    cornerColor:'#C8102E', cornerSize:10, transparentCorners:false,
+    name:'__cropRect',
+    // Store image bounds so we can clamp
+    _imgLeft:ib.left, _imgTop:ib.top, _imgRight:ib.left+ib.width, _imgBottom:ib.top+ib.height
+  });
+  cv.add(cropRect);
+  cv.setActiveObject(cropRect);
+
+  // Clamp on every move/scale so the rect never exceeds the image
+  cropRect.on('moving', clampCropRect);
+  cropRect.on('scaling', clampCropRect);
+
+  cv.renderAll();
+  document.getElementById('crop-bar').classList.add('on');
+}
+
+function clampCropRect(){
+  if(!cropRect||!cropTarget)return;
+  const ib=cropTarget.getBoundingRect(true,true);
+  let l=cropRect.left, t=cropRect.top;
+  const w=cropRect.getScaledWidth(), h=cropRect.getScaledHeight();
+  // Clamp position
+  if(l<ib.left) l=ib.left;
+  if(t<ib.top)  t=ib.top;
+  if(l+w>ib.left+ib.width)  l=ib.left+ib.width-w;
+  if(t+h>ib.top+ib.height)  t=ib.top+ib.height-h;
+  cropRect.set({left:l,top:t});
+  cropRect.setCoords();
+}
+
+function applyCrop(){
+  if(!cropRect||!cropTarget)return cancelCrop();
+
+  // Crop rect in canvas coords
+  const cr=cropRect.getBoundingRect(true,true);
+  const img=cropTarget;
+
+  // Image bounding rect at current scale
+  const ib=img.getBoundingRect(true,true);
+
+  // Fraction of the image that the crop rect covers
+  const fracLeft  =(cr.left  - ib.left) / ib.width;
+  const fracTop   =(cr.top   - ib.top)  / ib.height;
+  const fracWidth = cr.width            / ib.width;
+  const fracHeight= cr.height           / ib.height;
+
+  // Natural image dimensions (before any scale)
+  const natW=img.width, natH=img.height;
+  const sx=img.scaleX||1, sy=img.scaleY||1;
+
+  // Previous cropX/Y offsets
+  const prevCropX=img.cropX||0, prevCropY=img.cropY||0;
+
+  // New crop in natural pixels
+  const newCropX = prevCropX + fracLeft  * natW;
+  const newCropY = prevCropY + fracTop   * natH;
+  const newCropW = fracWidth  * natW;
+  const newCropH = fracHeight * natH;
+
+  // Apply - keep scaleX/Y so visual size of cropped area matches the crop rect
+  img.set({
+    cropX: newCropX,
+    cropY: newCropY,
+    width:  newCropW,
+    height: newCropH,
+    left:   cr.left,
+    top:    cr.top,
+    // scaleX/Y remain the same so the cropped region displays at the same pixel density
+  });
+  img.clipPath=null;
+  img.setCoords();
+
+  cv.remove(cropRect); cropRect=null;
+  cv.setActiveObject(img); cropTarget=null;
+  cv.renderAll();
+  document.getElementById('crop-bar').classList.remove('on');
+  commitCanvasChange({historyDelay:200,persistDelay:600});
+  toast('Crop applied');
+}
+
+function cancelCrop(){
+  if(cropRect){ cropRect.off('moving',clampCropRect); cropRect.off('scaling',clampCropRect); cv.remove(cropRect); }
+  if(cropTarget&&cropTarget._preCropClip!==undefined){ cropTarget.clipPath=cropTarget._preCropClip; cropTarget._preCropClip=undefined; }
+  cropRect=null; cropTarget=null;
+  cv.renderAll();
+  document.getElementById('crop-bar').classList.remove('on');
+}
+
+// -
+// B&W  - preserve size
+// -
+function toggleBW(){
+  const img=getEditableImageFromSelection();
+  if(!img||img.type!=='image')return toast('Select an image first');
+  // Snapshot geometry before filter so applyFilters can't affect it
+  const w=img.width, h=img.height, sx=img.scaleX, sy=img.scaleY, l=img.left, t=img.top;
+  const hasBW=(img.filters||[]).some(f=>f&&f.type==='Grayscale');
+  img.filters=hasBW
+    ?(img.filters||[]).filter(f=>!f||f.type!=='Grayscale')
+    :[...(img.filters||[]),new fabric.Image.filters.Grayscale()];
+  img.applyFilters();
+  // Restore geometry (applyFilters can reset dimensions internally)
+  img.set({width:w,height:h,scaleX:sx,scaleY:sy,left:l,top:t});
+  img.setCoords();
+  img.group&&img.group.set({dirty:true});
+  cv.renderAll(); showPropPanel(); commitCanvasChange({historyDelay:250,persistDelay:700}); toast(hasBW?'Color restored':'B&W applied');
+}
+
+// HISTORY
+// -
+function hKey(){return curProj+'__'+curCv;}
+function getH(){const k=hKey();if(!hist[k])hist[k]={u:[],r:[]};return hist[k];}
+function saveH(){if(histLock)return;const h=getH();const s=JSON.stringify({canvas:canvasJSON(),layers,activeLayerId,collapsedLayerIds:getCollapsedLayerIds(),manualGuides});if(h.u.length&&h.u[h.u.length-1]===s)return;h.u.push(s);if(h.u.length>60)h.u.shift();h.r=[];}
+function doUndo(){const h=getH();if(h.u.length<=1)return toast('Nothing to undo');h.r.push(h.u.pop());loadState(h.u[h.u.length-1]);}
+function doRedo(){const h=getH();if(!h.r.length)return toast('Nothing to redo');const s=h.r.pop();h.u.push(s);loadState(s);}
+function loadState(json){
+  histLock=true;
+  const d=JSON.parse(json);
+  layers=d.layers||[]; 
+  activeLayerId=d.activeLayerId||null;
+  setCollapsedLayerIds(d.collapsedLayerIds||[]);
+  manualGuides=d.manualGuides||{x:[],y:[]};
+  normalizeManualGuides();
+  cv.loadFromJSON(d.canvas,()=>{
+    normalizeLayerMembership();
+    restoreCanvasBehaviors();
+    applyLayerStateToObjects();
+    fitEditorCanvas();
+    cv.renderAll();
+    renderLayers();
+    renderGuideLayer();
+    updateStatus();
+    histLock=false;
+    schedulePersist(250);
+  });
+}
+let modTmr,persistTmr;
+function scheduleHistory(delay=300){
+  if(histLock)return;
+  clearTimeout(modTmr);
+  modTmr=setTimeout(saveH,delay);
+}
+function schedulePersist(delay=800){
+  if(!curProj||!curCv||!cv)return;
+  clearTimeout(persistTmr);
+  persistTmr=setTimeout(autoSave,delay);
+}
+function applyLayerStateToObjects(){
+  if(!cv)return;
+  cv.getObjects().forEach(o=>{
+    applyObjectControls(o);
+    const layer=layers.find(l=>l.id===o.__lid);
+    const visible=layer?layer.visible!==false:true;
+    const locked=layer?!!layer.locked:false;
+    o.visible=visible;
+    o.selectable=visible&&!locked&&tool==='select';
+    o.evented=visible&&!locked&&tool==='select';
+    o.hasControls=true;
+    o.hasBorders=true;
+  });
+}
+function normalizeLayerMembership(syncOrder=false){
+  if(!cv)return;
+  if(!layers.length)layers.push({id:genLayerId(),name:'Layer 1',visible:true,fabricIds:[]});
+  if(!activeLayerId||!layers.some(l=>l.id===activeLayerId))activeLayerId=layers[0].id;
+  const layerIds=new Set(layers.map(l=>l.id));
+  const liveByLayer=new Map(layers.map(l=>[l.id,[]]));
+  cv.getObjects().forEach(o=>{
+    o.__id=o.__id||genId();
+    if(!o.__lid||!layerIds.has(o.__lid))o.__lid=activeLayerId;
+    if(!liveByLayer.has(o.__lid))liveByLayer.set(o.__lid,[]);
+    liveByLayer.get(o.__lid).push(o.__id);
+  });
+  layers.forEach(layer=>{
+    const live=[...(liveByLayer.get(layer.id)||[])].reverse();
+    if(syncOrder){layer.fabricIds=[...live];return;}
+    const seen=new Set();
+    const kept=(layer.fabricIds||[]).filter(id=>{
+      if(seen.has(id)||!live.includes(id))return false;
+      seen.add(id);
+      return true;
+    });
+    live.forEach(id=>{if(!seen.has(id)){kept.push(id);seen.add(id);}});
+    layer.fabricIds=kept;
+  });
+}
+function commitCanvasChange(opts={}){
+  if(histLock)return;
+  const {syncOrder=false,historyDelay=0,persistDelay=800}=opts;
+  normalizeLayerMembership(syncOrder);
+  applyLayerStateToObjects();
+  renderLayers();
+  updateStatus();
+  if(historyDelay>0)scheduleHistory(historyDelay);else saveH();
+  schedulePersist(persistDelay);
+}
+function onMod(){
+  if(histLock)return;
+  normalizeLayerMembership();
+  renderLayers();
+  updateStatus();
+  scheduleHistory(300);
+  schedulePersist(900);
+}
+
+// -
+// MOUSE / PAN / ZOOM
+// -
+function evDown(o){
+  if(tool!=='pan') return;
+  // Don't start pan on double-click or when an IText is being edited
+  if(o.e.detail>1) return; // detail=2 means dblclick
+  const active=cv.getActiveObject();
+  if(active&&active.isEditing) return;
+  panning=true;
+  const e=o.e;
+  panStart={x:e.clientX,y:e.clientY};
+  const v=cv.viewportTransform;
+  panBase={x:v[4],y:v[5]};
+  cv.setCursor('grabbing');
+}
+function evUp(){
+  if(tool==='pan'){panning=false;cv.setCursor('grab');}
+  clearSmartGuides();
+}
+function evMove(o){
+  const e=o.e;
+  const p=cv.getPointer(e);
+  const el=document.getElementById('s-pos');
+  if(el)el.textContent=`x:${Math.round(p.x)} y:${Math.round(p.y)}`;
+  if(!panning)return;
+  const v=cv.viewportTransform.slice();
+  v[4]=panBase.x+(e.clientX-panStart.x);
+  v[5]=panBase.y+(e.clientY-panStart.y);
+  cv.setViewportTransform(v);
+  cv.requestRenderAll();
+}
+function evWheel(o){o.e.preventDefault();let z=cv.getZoom()*(0.999**o.e.deltaY);z=Math.min(Math.max(z,0.08),12);cv.zoomToPoint({x:o.e.offsetX,y:o.e.offsetY},z);const el=document.getElementById('zlbl');if(el)el.textContent=Math.round(z*100)+'%';cv.requestRenderAll();}
+function zIn(){applyZ(cv.getZoom()*1.15);}
+function zOut(){applyZ(cv.getZoom()*0.87);}
+function zReset(){cv.setViewportTransform([1,0,0,1,0,0]);const el=document.getElementById('zlbl');if(el)el.textContent='100%';cv.requestRenderAll();}
+function applyZ(z){z=Math.min(Math.max(z,0.08),12);cv.setZoom(z);const el=document.getElementById('zlbl');if(el)el.textContent=Math.round(z*100)+'%';cv.requestRenderAll();}
+
+// -
+// KEYBOARD
+// -
+// Track the tool active BEFORE space-pan so we restore it on keyup
+
+function evKey(e){
+  const tag = e.target.tagName;
+  if (tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'||e.target.isContentEditable) return;
+  const editingObj = cv && cv.getActiveObject();
+  if (editingObj && editingObj.isEditing) return;
+
+  const isEditor = document.getElementById('editor-screen').classList.contains('active');
+  if (!isEditor) return;
+  if (document.body.classList.contains('zen-mode')){
+    if (e.key==='ArrowLeft'){e.preventDefault();zenStep(-1);return;}
+    if (e.key==='ArrowRight'){e.preventDefault();zenStep(1);return;}
+    if (e.key==='Escape'){e.preventDefault();toggleZen();return;}
+    return;
+  }
+
+  // - Ctrl/Cmd shortcuts first (before single-key shortcuts) -
+  if (e.ctrlKey||e.metaKey){
+    if (e.key==='z'){e.preventDefault();doUndo();return;}
+    if (e.key==='y'||(e.shiftKey&&e.key==='Z')){e.preventDefault();doRedo();return;}
+    if (e.key==='c'){e.preventDefault();copyToClipboard();return;}
+    if (e.key==='x'){e.preventDefault();cutToClipboard();return;}
+    if (e.key==='v'){
+      if(_clipboard){
+        e.preventDefault();
+        window._pendingInternalPaste=true;
+        setTimeout(()=>{
+          if(window._pendingInternalPaste){
+            pasteFromClipboard();
+            window._pendingInternalPaste=false;
+          }
+        },0);
+      }
+      return;
+    }
+    if (e.key==='d'){
+      e.preventDefault();
+      if(e.altKey) cxDupeNewLayer();
+      else cxDupe();
+      return;
+    }
+    if (e.key==='g'){e.preventDefault();groupSelectedLayers();return;}
+    return; // don't process single-key shortcuts when Ctrl is held
+  }
+
+  // - Single-key shortcuts (no Ctrl) -
+  if (e.key==='v'||e.key==='V') setTool('select');
+  if (e.key==='d'||e.key==='D') setTool('draw');
+  if (e.key==='t'||e.key==='T') addText();
+  if (e.key==='n'||e.key==='N') addSticky();
+
+  if (e.key===' '){
+    e.preventDefault();
+    if (tool !== 'pan'){ _prePanTool = tool; setTool('pan'); }
+    return;
+  }
+
+  if (e.key==='Escape'){
+    closeCtx();
+    if (eyedropperActive){eyedropperActive=false;document.getElementById('cw').classList.remove('eyedropper-mode');}
+    if (tool==='pan'||tool==='draw') setTool('select');
+  }
+  if (e.key==='Delete'||e.key==='Backspace'){
+    if(hoveredManualGuide){
+      const {axis,value}=hoveredManualGuide;
+      removeManualGuide(axis,value);
+      e.preventDefault();
+      return;
+    }
+  }
+  if (e.key==='Delete'||e.key==='Backspace'){
+    const o = cv.getActiveObject(); if (!o) return;
+    if (o.type==='activeSelection') o.getObjects().forEach(x=>cv.remove(x));
+    else cv.remove(o);
+    cv.discardActiveObject(); cv.renderAll();
+    commitCanvasChange({syncOrder:true,persistDelay:500});
+  }
+}
+
+// Restore tool when Space is released
+document.addEventListener('keyup', e => {
+  if (e.key===' '){
+    const isEditor = document.getElementById('editor-screen').classList.contains('active');
+    if (!isEditor) return;
+    const editingObj = cv && cv.getActiveObject();
+    if (editingObj && editingObj.isEditing) return;
+    if (tool === 'pan') setTool(_prePanTool || 'select');
+  }
+});
+
+// -
+// CONTEXT MENU
+// -
+function openCtx(x,y){
+  const m=document.getElementById('ctxm');
+  m.style.left=x+'px'; m.style.top=y+'px'; m.classList.add('on');
+  // Show/hide image-specific items
+  const o=cv.getActiveObject();
+  const isImg=o&&(o.type==='image'||o._isFrame);
+  document.getElementById('ctx-move-layer-item').style.display='flex';
+  document.querySelector('.ci[onclick="cxStartCrop()"]').style.display=isImg?'flex':'none';
+  document.querySelector('.ci[onclick="cxToggleBW()"]').style.display=isImg?'flex':'none';
+  // Populate layer submenu
+  const sub=document.getElementById('ctx-layer-submenu');
+  sub.innerHTML=''; sub.style.display='block';
+  layers.forEach(layer=>{
+    if(!o||o.__lid===layer.id)return;
+    const item=document.createElement('div'); item.className='ci';
+    item.style.paddingLeft='20px'; item.style.fontSize='11px';
+    item.innerHTML=`<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/></svg> ${layer.name}`;
+    item.onclick=()=>{ cxMoveToLayer(layer.id); closeCtx(); };
+    sub.appendChild(item);
+  });
+  if(!sub.children.length){ sub.innerHTML='<div style="padding:6px 20px;font-size:11px;color:var(--txt3)">No other layers</div>'; }
+}
+function closeCtx(){document.getElementById('ctxm').classList.remove('on');}
+function cxFront(){const o=cv.getActiveObject();if(o){cv.bringToFront(o);cv.renderAll();commitCanvasChange({syncOrder:true,persistDelay:500});}}
+function cxBack(){const o=cv.getActiveObject();if(o){cv.sendToBack(o);cv.renderAll();commitCanvasChange({syncOrder:true,persistDelay:500});}}
+function cxDelete(){const o=cv.getActiveObject();if(!o)return;if(o.type==='activeSelection')o.getObjects().forEach(x=>cv.remove(x));else cv.remove(o);cv.discardActiveObject();cv.renderAll();commitCanvasChange({syncOrder:true,persistDelay:500});}
+// -
+// CROSS-CANVAS CLIPBOARD
+// -
+function copyToClipboard(){
+  const o = cv.getActiveObject();
+  if (!o) return toast('Nothing selected to copy');
+  o.clone(cloned => {
+    _clipboard = {
+      json: JSON.stringify(objectJSON(cloned)),
+      type: cloned.type,
+    };
+    toast('Copiado - switch canvas and Ctrl+V to paste');
+  });
+}
+
+function pasteFromClipboard(){
+  if (!_clipboard) return toast('Nothing Copiado yet (Ctrl+C first)');
+  try {
+    fabric.util.enlivenObjects([JSON.parse(_clipboard.json)], (objs) => {
+      const obj = objs[0]; if (!obj) return;
+      obj.__id = genId();
+      obj.set({
+        left: (cv.width / 2) - (obj.width || 100) / 2,
+        top:  (cv.height / 2) - (obj.height || 100) / 2,
+      });
+      if(obj._isSticky) attachStickyDblClick(obj, obj._stickyColor || STICKY_PALS[0]);
+      if(obj._isPolaroid) attachPolaroidDblClick(obj);
+      addObj(obj);
+      toast('Pasted');
+    });
+  } catch(e){ toast('Could not paste object'); }
+}
+
+function cutToClipboard(){
+  const o=cv.getActiveObject();
+  if(!o)return toast('Nothing selected to cut');
+  copyToClipboard();
+  if(o.type==='activeSelection')o.getObjects().forEach(x=>cv.remove(x));
+  else cv.remove(o);
+  cv.discardActiveObject();
+  cv.renderAll();
+  commitCanvasChange({syncOrder:true,persistDelay:500});
+}
+
+// Add "Copy" to context menu actions
+function cxCopy(){ copyToClipboard(); closeCtx(); }
+function cxDupe(){const o=cv.getActiveObject();if(!o)return;o.clone(cl=>{cl.__id=genId();cl.set({left:o.left+18,top:o.top+18});addObj(cl);});}
+
+// Ctrl+Alt+D - duplicate to a brand new layer
+function cxDupeNewLayer(){
+  const o=cv.getActiveObject();if(!o)return;
+  o.clone(cl=>{
+    cl.__id=genId();
+    cl.set({left:o.left+18,top:o.top+18});
+    const newLayerId=newLayer('Layer '+(layers.length+1));
+    cl.set({selectable:true,evented:true,hasControls:true,hasBorders:true});
+    ensureDefaultLayer();
+    cl.__lid=newLayerId;
+    const layer=layers.find(l=>l.id===newLayerId);
+    if(layer)layer.fabricIds.push(cl.__id);
+    cv.add(cl);
+    setTool('select');
+    cv.setActiveObject(cl);
+    rebuildCanvasZOrder();
+    cv.requestRenderAll();
+    commitCanvasChange({persistDelay:500});
+    toast('Duplicated to new layer');
+  });
+}
+function cxStartCrop(){ closeCtx(); const o=cv.getActiveObject(); if(o&&o._isFrame){ cropFramedImage(); return; } if(o&&o.type==='image'){ startCrop(); } }
+function cxToggleBW(){ closeCtx(); toggleBW(); }
+function cxNewLayer(){
+  closeCtx();
+  const o=cv.getActiveObject(); if(!o)return;
+  const lid=newLayer('Layer '+(layers.length+1));
+  // Move selected objects to new layer
+  const objs=o.type==='activeSelection'?o.getObjects():[o];
+  objs.forEach(obj=>{
+    // Remove from old layer's fabricIds
+    const oldL=layers.find(l=>l.id===obj.__lid);
+    if(oldL)oldL.fabricIds=oldL.fabricIds.filter(id=>id!==obj.__id);
+    // Assign to new
+    obj.__lid=lid;
+    const newL=layers.find(l=>l.id===lid);
+    if(newL)newL.fabricIds.push(obj.__id);
+  });
+  renderLayers(); commitCanvasChange({persistDelay:500}); toast('Moved to new layer');
+}
+function cxMoveLayerOpen(){ /* handled inline in openCtx */ }
+function cxMoveToLayer(targetLayerId){
+  const o=cv.getActiveObject(); if(!o)return;
+  const target=layers.find(l=>l.id===targetLayerId);
+  if(target?.locked)return toast(`Layer "${target.name}" is locked`);
+  const objs=o.type==='activeSelection'?o.getObjects():[o];
+  objs.forEach(obj=>{
+    const oldL=layers.find(l=>l.id===obj.__lid);
+    if(oldL)oldL.fabricIds=oldL.fabricIds.filter(id=>id!==obj.__id);
+    obj.__lid=targetLayerId;
+    const newL=layers.find(l=>l.id===targetLayerId);
+    if(newL&&!newL.fabricIds.includes(obj.__id))newL.fabricIds.push(obj.__id);
+  });
+  renderLayers(); commitCanvasChange({persistDelay:500}); toast('Moved to layer: '+layers.find(l=>l.id===targetLayerId)?.name);
+}
+function updateStatus(){const el=document.getElementById('s-objs');if(el)el.textContent=cv.getObjects().length+' objects';}
+
+async function saveLSLegacy(){
+  const snapshot={v:1,projects,updatedAt:Date.now()};
+  try{
+    localStorage.setItem('mbp6',JSON.stringify(projects));
+  }catch(e){
+    console.warn('MoodBoard Pro localStorage save failed',e);
+    trimNonEssentialProjectData();
+    try{
+      localStorage.setItem('mbp6',JSON.stringify(projects));
+    }catch(e2){
+      console.warn('MoodBoard Pro compact localStorage save failed',e2);
+    }
+    const now=Date.now();
+    if(now-_lastSaveErrorToast>15000){
+      toast?.('No se pudo guardar: reduce el tamaño o número de imágenes');
+      _lastSaveErrorToast=now;
+    }
+  }
+  try{ await saveWorkspaceState?.(snapshot); }catch(e){}
+  return true;
+}
+// -
+// EXPORT / IMPORT
+</script>
+<script src="js/export.js"></script>
+<script>
+// DROP & PASTE
+function isEditorActive(){
+  return document.getElementById('editor-screen')?.classList.contains('active');
+}
+function eventIsOverCanvas(e){
+  const cw=document.getElementById('cw');
+  if(!cw)return false;
+  const r=cw.getBoundingClientRect();
+  return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;
+}
+function getDropUrl(dt){
+  const raw=dt?.getData('text/uri-list')||dt?.getData('text/plain')||'';
+  const url=raw.split(/\r?\n/).map(x=>x.trim()).find(x=>x&&!x.startsWith('#'))||'';
+  if(url)return url;
+  const html=dt?.getData('text/html')||'';
+  const doc=new DOMParser().parseFromString(html,'text/html');
+  return doc.querySelector('img')?.src||'';
+}
+function hasExternalImageDrop(e){
+  const dt=e.dataTransfer;
+  if(!dt)return false;
+  const types=[...(dt.types||[])];
+  if(types.includes('Files'))return true;
+  return types.includes('text/uri-list')||types.includes('text/plain')||types.includes('text/html');
+}
+function evDrop(e){
+  e.preventDefault();
+  document.getElementById('drop-hl').classList.remove('on');
+  console.info('MBP drop received', {
+    types:[...(e.dataTransfer?.types||[])],
+    files:[...(e.dataTransfer?.files||[])].map(f=>({name:f.name,type:f.type,size:f.size}))
+  });
+  const p=typeof screenToCanvasPoint==='function'
+    ?screenToCanvasPoint(e.clientX,e.clientY)
+    :new fabric.Point(cv.width/2,cv.height/2);
+  if(e.dataTransfer.files?.length){
+    const files=[...e.dataTransfer.files].filter(isImageFile);
+    if(files.length){
+      files.forEach(f=>loadImageFile(f,p.x,p.y));
+      return;
+    }
+  }
+  const url=getDropUrl(e.dataTransfer);
+  if(url?.startsWith('http'))loadImg(url,p.x,p.y);
+  else toast('Suelta un archivo de imagen o una imagen desde una web');
+}
+function evDocumentDragOver(e){
+  if(!isEditorActive()||!eventIsOverCanvas(e)||!hasExternalImageDrop(e))return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect='copy';
+  document.getElementById('drop-hl').classList.add('on');
+}
+function evDocumentDrop(e){
+  if(!isEditorActive()||!eventIsOverCanvas(e)||!hasExternalImageDrop(e))return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  evDrop(e);
+}
+document.addEventListener('dragover',evDocumentDragOver,true);
+document.addEventListener('drop',evDocumentDrop,true);
+async function evPaste(e){
+  const tag=e.target.tagName;
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;
+  if(window._pendingInternalPaste&&_clipboard){
+    e.preventDefault();
+    pasteFromClipboard();
+    window._pendingInternalPaste=false;
+    return;
+  }
+  for(const item of(e.clipboardData?.items||[])){
+    if(item.type.startsWith('image/')){
+      e.preventDefault();
+      window._pendingInternalPaste=false;
+      loadImageFile(item.getAsFile());
+      return;
+    }
+  }
+  const txt=e.clipboardData?.getData('text/plain');
+  if(txt&&/\.(jpe?g|png|gif|webp|svg|bmp|avif)(\?.*)?$/i.test(txt)){
+    window._pendingInternalPaste=false;
+    return loadImg(txt);
+  }
+  if(txt){
+    window._pendingInternalPaste=false;
+    const t=new fabric.Textbox(txt,{left:cv.width/2-140,top:cv.height/2-22,width:280,fontFamily:'Syne',fontSize:20,fill:'#111827',fontWeight:'600',lineHeight:1.18,objectCaching:false});
+    normalizeTextBox(t);
+    addObj(t);
+    return;
+  }
+  if(_clipboard){
+    e.preventDefault();
+    window._pendingInternalPaste=false;
+    pasteFromClipboard();
+  }
+}
+
+// MODALS
+document.addEventListener('click',e=>{if(e.target.classList.contains('mbg'))document.querySelectorAll('.mbg.on').forEach(m=>m.classList.remove('on'));});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){if(document.getElementById('m-proj').classList.contains('on'))confirmProj();if(document.getElementById('m-cv').classList.contains('on'))confirmCv();if(document.getElementById('m-img').classList.contains('on'))addImgURL();if(document.getElementById('m-compare-proj')?.classList.contains('on'))confirmCompareProjectModal();}
+  if(e.key==='Escape')document.querySelectorAll('.mbg.on').forEach(m=>m.classList.remove('on'));
+});
+
+</script>
+<script src="js/ui.js"></script>
+<script src="js/properties.js"></script>
+<script src="js/editor-tail.js"></script>
+</body>
+</html>
