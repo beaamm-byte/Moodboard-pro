@@ -1365,7 +1365,7 @@ function doRedo(){const h=getH();if(!h.r.length)return toast('Nothing to redo');
 function loadState(json){
   histLock=true;
   const d=JSON.parse(json);
-  layers=d.layers||[]; 
+  layers=d.layers||[];
   activeLayerId=d.activeLayerId||null;
   setCollapsedLayerIds(d.collapsedLayerIds||[]);
   manualGuides=d.manualGuides||{x:[],y:[]};
