@@ -57,6 +57,8 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--txt
 .save-status.ok{color:var(--green);border-color:rgba(45,106,79,.35);background:rgba(45,106,79,.08);}
 .save-status.err{color:var(--red);border-color:rgba(200,16,46,.35);background:rgba(200,16,46,.08);}
 .save-status.busy{color:#92400E;border-color:rgba(146,64,14,.28);background:rgba(245,158,11,.1);}
+.cloud-mini-btn{height:23px;border:1px solid var(--border);background:var(--surface);color:var(--txt2);border-radius:5px;padding:0 7px;font-family:'DM Mono',monospace;font-size:10px;font-weight:700;cursor:pointer;}
+.cloud-mini-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--acl);}
 
 /* - PROJECTS HOME SCREEN - */
 #home-screen{background:var(--bg);overflow-y:auto;}

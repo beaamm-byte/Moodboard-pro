@@ -220,6 +220,9 @@
 
   <div id="statusbar">
     <div id="save-indicator"><div class="sdot"></div><span id="s-save-statusbar" class="save-status">Auto-saved</span></div>
+    <button class="cloud-mini-btn" onclick="cloudSaveNow()" title="Save this workspace to Supabase">Cloud save</button>
+    <button class="cloud-mini-btn" onclick="cloudLoadNow()" title="Load the linked Supabase workspace">Cloud load</button>
+    <button class="cloud-mini-btn" onclick="cloudShowRecovery()" title="Copy recovery link">Copy cloud link</button>
     <span id="s-objs">0 objects</span>
     <span id="s-pos">x:0 y:0</span>
     <div style="flex:1"></div>
@@ -653,7 +656,10 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/state.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/cloud-sync.js"></script>
 <script>
 window.MBP_BUILD='drag-image-fix-2026-05-17e';
 console.info('MoodBoard Pro build:',window.MBP_BUILD);
@@ -676,6 +682,7 @@ console.info('MoodBoard Pro build:',window.MBP_BUILD);
 window.addEventListener('DOMContentLoaded',()=>{
   initImageAssetStore?.().catch(()=>{});
   const workspaceReady=loadLS();
+  cloudImportFromUrl?.().catch(()=>{});
   initCanvas();
   setInterval(autoSave,8000);
   makePropDraggable();

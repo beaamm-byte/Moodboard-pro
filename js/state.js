@@ -183,6 +183,7 @@ async function saveLS(){
       const dbSavedAfterLocalFail=await saveWorkspaceState(snapshot);
       if(dbSavedAfterLocalFail){
         console.info('MoodBoard Pro saved to IndexedDB; localStorage mirror skipped because it is too large');
+        try{ scheduleCloudSave?.(snapshot); }catch(e){}
         return true;
       }
     }catch(e3){}
@@ -193,7 +194,9 @@ async function saveLS(){
     }
   }
   try{
-    return await saveWorkspaceState(snapshot);
+    const dbSaved=await saveWorkspaceState(snapshot);
+    if(dbSaved)try{ scheduleCloudSave?.(snapshot); }catch(e){}
+    return dbSaved;
   }catch(e){
     return false;
   }
