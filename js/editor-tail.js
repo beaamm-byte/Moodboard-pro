@@ -138,15 +138,21 @@ function switchCv(pid,cid){
   const loadSeq=++_switchLoadSeq;
   const finishLoad=()=>{ if(loadSeq===_switchLoadSeq) setCanvasLoading(false); };
   if(curProj&&curCv){
+    if(_currentCanvasHasUnresolvedAssets){
+      console.warn('MoodBoard Pro switch save skipped: unresolved mbasset refs in loaded canvas');
+    }else{
+    const json=canvasJSON();
     // Save viewport transform alongside canvas data
     projects[curProj].canvases[curCv].json=JSON.stringify({
-      canvas:canvasJSON(),layers,activeLayerId,manualGuides,
+      canvas:json,layers,activeLayerId,manualGuides,
       collapsedLayerIds:getCollapsedLayerIds(),
       viewport:cv.viewportTransform.slice() // save pan/zoom state
     });
     saveLS();
+    }
   }
   curProj=pid;curCv=cid;
+  _currentCanvasHasUnresolvedAssets=false;
   localStorage.setItem('mbp_last_proj',pid);
   localStorage.setItem('mbp_last_cv',cid);
   const cvData=projects[pid].canvases[cid];
@@ -184,7 +190,8 @@ function switchCv(pid,cid){
         if(zlbl)zlbl.textContent=Math.round(cv.getZoom()*100)+'%';
         fitEditorCanvas();
         cv.renderAll();saveH();renderLayers();updateStatus();
-        migrateCanvasImageAssets()?.then(()=>saveLS());
+        // Do not migrate image sources during load. Load-time migration can rewrite
+        // working image JSON before the user changes anything.
         if(document.body.classList.contains('zen-mode')) renderZenStrip();
         finishLoad();
       });

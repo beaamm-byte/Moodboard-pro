@@ -219,7 +219,7 @@
   </div>
 
   <div id="statusbar">
-    <div id="save-indicator"><div class="sdot"></div><span id="s-save">Auto-saved</span></div>
+    <div id="save-indicator"><div class="sdot"></div><span id="s-save-statusbar" class="save-status">Auto-saved</span></div>
     <span id="s-objs">0 objects</span>
     <span id="s-pos">x:0 y:0</span>
     <div style="flex:1"></div>
@@ -681,8 +681,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   makePropDraggable();
   initDrawControls();
   replaceDecorativeEmojiIcons();
-  renderHome();
-  showScreen('home-screen');
 
   workspaceReady.then(fromWorkspace=>{
     if(!Object.keys(projects).length){
@@ -706,14 +704,6 @@ window.addEventListener('DOMContentLoaded',()=>{
     showScreen('home-screen');
   });
 
-  loadWorkspaceState?.().then(state=>{
-    if(state&&state.projects&&Object.keys(state.projects).length){
-      projects=state.projects;
-      try{ localStorage.setItem('mbp6',JSON.stringify(projects)); }catch(e){}
-      renderHome();
-      showScreen('home-screen');
-    }
-  }).catch(()=>{});
 });
 
 function initCanvas(){
@@ -1117,7 +1107,7 @@ function imageElementFromSourceWithTimeout(src,crossOrigin=null,timeoutMs=8000){
     el.src=src;
   });
 }
-async function addImageElementToCanvas(el,src,dx,dy,assetKey=null){
+async function addImageElementToCanvas(el,src,dx,dy,assetKey=null,inlineSrc=false){
   const img=new fabric.Image(el);
   if(!img||!img.width)return toast('Could not load image');
   const mw=cv.width*.45,mh=cv.height*.45;
@@ -1126,27 +1116,36 @@ async function addImageElementToCanvas(el,src,dx,dy,assetKey=null){
     ?screenToCanvasPoint(window.innerWidth/2,window.innerHeight/2)
     :new fabric.Point(cv.width/2,cv.height/2);
   img.set({left:dx??center.x-img.getScaledWidth()/2,top:dy??center.y-img.getScaledHeight()/2});
-  if(typeof src==='string'&&src.startsWith('data:image/')){
-    try{img.__assetKey=await putImageAsset(src);}catch(e){}
-  }
-  if(assetKey)img.__assetKey=assetKey;
+  delete img.__assetKey;
   addObj(img);
-  console.info('MBP image added', {width:img.width,height:img.height,left:img.left,top:img.top});
+  const saved=await autoSave?.();
+  try{
+    const savedJson=projects?.[curProj]?.canvases?.[curCv]?.json||'';
+    const parsed=savedJson?JSON.parse(savedJson):null;
+    const jsonImages=(parsed?.canvas?.objects||parsed?.objects||[]).filter(o=>o.type==='image');
+    console.info('MBP image added', {
+      width:img.width,
+      height:img.height,
+      left:img.left,
+      top:img.top,
+      saved,
+      canvasImages:cv.getObjects().filter(o=>o.type==='image').length,
+      jsonImages:jsonImages.length,
+      lastJsonImageSrc:String(jsonImages.at(-1)?.src||'').slice(0,32),
+      jsonLength:savedJson.length
+    });
+  }catch(e){
+    console.info('MBP image added', {width:img.width,height:img.height,left:img.left,top:img.top,saved});
+  }
 }
 async function loadImageFile(file,dx,dy){
   if(!file)return;
   console.info('MBP image file selected', {name:file.name,type:file.type,size:file.size});
   if(!isImageFile(file))return toast('El archivo no parece ser una imagen');
-  const objectUrl=URL.createObjectURL(file);
   try{
-    const [el,dataUrl]=await Promise.all([
-      imageElementFromSourceWithTimeout(objectUrl,null,8000),
-      readFileAsDataUrl(file)
-    ]);
-    const assetKey='img_'+genId();
-    _imageAssetCache?.set(assetKey,dataUrl);
-    putImageAssetWithKey(assetKey,dataUrl).catch(()=>{});
-    await addImageElementToCanvas(el,objectUrl,dx,dy,assetKey);
+    const dataUrl=await readFileAsDataUrl(file);
+    const el=await imageElementFromSourceWithTimeout(dataUrl,null,8000);
+    await addImageElementToCanvas(el,dataUrl,dx,dy,null,true);
   }catch(e){
     try{
       const dataUrl=await readFileAsDataUrl(file);
@@ -1156,27 +1155,17 @@ async function loadImageFile(file,dx,dy){
       console.error('MBP image file load failed', e, e2);
       toast('No se pudo cargar la imagen');
     }
-  }finally{
-    setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);
   }
 }
 async function loadImageBlob(blob,dx,dy){
   if(!blob)return;
-  const objectUrl=URL.createObjectURL(blob);
   try{
-    const [el,dataUrl]=await Promise.all([
-      imageElementFromSourceWithTimeout(objectUrl,null,8000),
-      readFileAsDataUrl(blob)
-    ]);
-    const assetKey='img_'+genId();
-    _imageAssetCache?.set(assetKey,dataUrl);
-    putImageAssetWithKey(assetKey,dataUrl).catch(()=>{});
-    await addImageElementToCanvas(el,objectUrl,dx,dy,assetKey);
+    const dataUrl=await readFileAsDataUrl(blob);
+    const el=await imageElementFromSourceWithTimeout(dataUrl,null,8000);
+    await addImageElementToCanvas(el,dataUrl,dx,dy,null,true);
   }catch(e){
     console.error('MBP image file load failed', e);
     toast('No se pudo cargar la imagen');
-  }finally{
-    setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);
   }
 }
 function fileChosen(e){const f=e.target.files[0];if(!f)return;closeM('m-img');loadImageFile(f);e.target.value='';}
@@ -1529,6 +1518,7 @@ function evKey(e){
     if (e.key==='x'){e.preventDefault();cutToClipboard();return;}
     if (e.key==='v'){
       if(_clipboard){
+        e.preventDefault();
         window._pendingInternalPaste=true;
         setTimeout(()=>{
           if(window._pendingInternalPaste){
@@ -1728,17 +1718,7 @@ function cxMoveToLayer(targetLayerId){
 }
 function updateStatus(){const el=document.getElementById('s-objs');if(el)el.textContent=cv.getObjects().length+' objects';}
 
-// -
-// PROJECTS + CANVASES
-// -
-async function loadLS(){
-  try{
-    const r=localStorage.getItem('mbp6');
-    if(r)projects=JSON.parse(r);
-  }catch(e){}
-  return Promise.resolve(!!Object.keys(projects||{}).length);
-}
-async function saveLS(){
+async function saveLSLegacy(){
   const snapshot={v:1,projects,updatedAt:Date.now()};
   try{
     localStorage.setItem('mbp6',JSON.stringify(projects));
@@ -1827,6 +1807,12 @@ document.addEventListener('drop',evDocumentDrop,true);
 async function evPaste(e){
   const tag=e.target.tagName;
   if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;
+  if(window._pendingInternalPaste&&_clipboard){
+    e.preventDefault();
+    pasteFromClipboard();
+    window._pendingInternalPaste=false;
+    return;
+  }
   for(const item of(e.clipboardData?.items||[])){
     if(item.type.startsWith('image/')){
       e.preventDefault();

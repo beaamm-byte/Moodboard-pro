@@ -560,7 +560,6 @@ function addBoardObject(o,layerId){
   o.__id=o.__id||genId();
   applyObjectControls(o);
   o.set({selectable:true,evented:true,hasControls:true,hasBorders:true});
-  if(o.type==='image')registerImageAssetFromObject(o).catch(()=>{});
   assignToLayer(o,layerId);
   cv.add(o);
   return o;
@@ -593,7 +592,6 @@ function addBoardImage(src,left,top,maxW,maxH,layerId){
         objectCaching:false,
         noScaleCache:true,
       });
-      if(typeof src==='string'&&src.startsWith('data:image/'))registerImageAssetFromObject(img).catch(()=>{});
       addBoardObject(img,layerId);
       resolve(img);
     });
@@ -670,7 +668,7 @@ async function buildVisualDirectionCanvas(payload,pid,cid){
     toast('No se pudieron preparar todas las imágenes para guardar');
   }
   projects[pid].canvases[cid].json=JSON.stringify(state);
-  const saved=saveLS();
+  const saved=await saveLS();
   saveH();renderLayers();renderCvList();renderProjectPalettes();updateStatus();
   toast(saved?'Visual Direction board creado':'Board creado, pero el navegador no pudo guardarlo');
 }

@@ -53,6 +53,10 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--txt
 #proj-crumb{font-size:12px;font-weight:600;color:var(--txt3);display:flex;align-items:center;gap:4px;margin-right:4px;}
 #proj-crumb span{color:var(--txt2);}
 #proj-crumb .crumb-sep{color:var(--border2);}
+.save-status{font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--txt3);border:1px solid var(--border);background:var(--surface2);border-radius:6px;padding:5px 7px;white-space:nowrap;flex-shrink:0;}
+.save-status.ok{color:var(--green);border-color:rgba(45,106,79,.35);background:rgba(45,106,79,.08);}
+.save-status.err{color:var(--red);border-color:rgba(200,16,46,.35);background:rgba(200,16,46,.08);}
+.save-status.busy{color:#92400E;border-color:rgba(146,64,14,.28);background:rgba(245,158,11,.1);}
 
 /* - PROJECTS HOME SCREEN - */
 #home-screen{background:var(--bg);overflow-y:auto;}

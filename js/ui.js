@@ -1192,8 +1192,14 @@ function createProj(name){
 // -
 function autoSave(){
   if(!curProj||!curCv||!cv)return;
+  if(_currentCanvasHasUnresolvedAssets){
+    setSaveStatus?.('Save paused: missing image data','err');
+    console.warn('MoodBoard Pro autosave skipped: unresolved mbasset refs in loaded canvas');
+    return false;
+  }
+  const json=canvasJSON();
   projects[curProj].canvases[curCv].json=JSON.stringify({
-    canvas:canvasJSON(),
+    canvas:json,
     layers,
     activeLayerId,
     collapsedLayerIds:getCollapsedLayerIds(),
@@ -1212,9 +1218,11 @@ function autoSave(){
     cv.backgroundColor=prevBg;
     cv.renderAll();
   }
-  saveLS();
-  const el=document.getElementById('s-save');
-  if(el)el.textContent='Saved '+new Date().toLocaleTimeString();
+  return saveLS().then(saved=>{
+    setSaveStatus?.(saved?'Saved '+new Date().toLocaleTimeString():'Save failed',saved?'ok':'err');
+    if(!saved)toast?.('No se pudo guardar el board');
+    return saved;
+  });
 }
 
 // -

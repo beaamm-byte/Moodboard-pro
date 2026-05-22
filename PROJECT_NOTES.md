@@ -56,13 +56,18 @@ Workspace: `D:\PROYECTOS\CODE\Moodboard-pro`
 
 - Layer reordering has been resolved.
 - Comparator persistence still needs verification if content disappears after reload.
+- Supabase backend decision pending: user will create a Supabase project and provide `SUPABASE_URL` + `SUPABASE_ANON_KEY`. Planned approach is anonymous workspace sync by default, with optional magic-link login later.
+- Current blocker: after dragging/importing images into a board, reloading inside the board may lose the latest images, sometimes on the first reload. Staying inside the same project after reload is now working, but image/object persistence is still unreliable.
+- 2026-05-22 investigation found the concrete image-loss error in browser console: Fabric was trying to load `mbasset:img_...` as a real URL and failing with `ERR_UNKNOWN_URL_SCHEME`. Runtime `mbasset` generation has been disabled; see `BUG_AUDIT.md`.
+- New images should now remain inline as `data:image/...` in board JSON. Old boards with missing `mbasset` records will show `Save paused: missing image data` and should not be autosaved over until recovered or rebuilt.
 
 ## Next Steps
 
-1. Verify comparator-generated boards survive reload and re-open correctly.
-2. Re-check smart guides/rulers behavior after more real use, especially pan/zoom and guide persistence.
-3. Finish cleanup of legacy duplicate blocks and stale mojibake strings in `index.html`.
-4. Keep the export menu compact.
+1. Fix image persistence after drag/import and reload. Reproduce by adding images to a board, reloading 2-3 times inside that board, and confirming the latest images remain.
+2. Verify comparator-generated boards survive reload and re-open correctly.
+3. Re-check smart guides/rulers behavior after more real use, especially pan/zoom and guide persistence.
+4. Finish cleanup of legacy duplicate blocks and stale mojibake strings in `index.html`.
+5. Keep the export menu compact.
 
 ## Pause Point
 
