@@ -1,7 +1,8 @@
-create extension if not exists pgcrypto;
+create schema if not exists extensions;
+create extension if not exists pgcrypto with schema extensions;
 
 create table if not exists public.mbp_workspaces (
-  id uuid primary key default gen_random_uuid(),
+  id uuid primary key default extensions.gen_random_uuid(),
   write_token_hash text not null,
   data jsonb not null default '{"v":1,"projects":{}}'::jsonb,
   created_at timestamptz not null default now(),
@@ -17,7 +18,7 @@ returns text
 language sql
 immutable
 as $$
-  select encode(digest(token, 'sha256'), 'hex')
+  select encode(extensions.digest(token, 'sha256'), 'hex')
 $$;
 
 create or replace function public.mbp_create_workspace()
@@ -27,7 +28,7 @@ security definer
 set search_path = public
 as $$
 declare
-  token text := encode(gen_random_bytes(32), 'hex');
+  token text := encode(extensions.gen_random_bytes(32), 'hex');
   new_id uuid;
 begin
   insert into public.mbp_workspaces(write_token_hash)
