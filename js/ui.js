@@ -121,7 +121,7 @@ function sendFeedback(){
       // Fallback: open mailto if Formspree fails
       const subject=encodeURIComponent('MOODBOARD-PRO');
       const body=encodeURIComponent(`De: ${email}\n\n${msg}`);
-      window.open(`mailto:contact@beatrizmoron.com?subject=${subject}&body=${body}`);
+      window.open(`mailto:beatrizmoronmarin@gmail.com?subject=${subject}&body=${body}`);
       closeM('m-feedback');
       toast('Se ha abierto tu correo como alternativa');
     }
@@ -130,7 +130,7 @@ function sendFeedback(){
     // Network error - fallback to mailto
     const subject=encodeURIComponent('MOODBOARD-PRO');
     const body=encodeURIComponent(`De: ${email}\n\n${msg}`);
-    window.open(`mailto:contact@beatrizmoron.com?subject=${subject}&body=${body}`);
+    window.open(`mailto:beatrizmoronmarin@gmail.com?subject=${subject}&body=${body}`);
     closeM('m-feedback');
     toast('Sin conexión - se ha abierto tu correo');
   })
