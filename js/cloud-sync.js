@@ -260,7 +260,7 @@ async function cloudSendEmailLink(){
     });
     if(error)throw error;
     closeM?.('m-cloud-email');
-    toast?.('Check your email for the sync link');
+    toast?.('Check your email for the confirmation link');
   }catch(e){
     console.warn('MoodBoard Pro email sync failed',e);
     toast?.('No se pudo enviar el enlace de sincronización');
