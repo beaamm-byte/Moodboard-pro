@@ -99,7 +99,7 @@ function sendFeedback(){
 
   // Formspree - reemplaza el ID con el tuyo de formspree.io
   // Para activar: ve a https://formspree.io - New Form - pega tu email - copia el endpoint
-  const FORMSPREE_ENDPOINT='https://formspree.io/f/mzdynnlv';
+  const FORMSPREE_ENDPOINT='https://formspree.io/f/mlgzgzyp';
 
   fetch(FORMSPREE_ENDPOINT,{
     method:'POST',
