@@ -190,11 +190,22 @@ function cloudLoadNow(){
 function cloudShowRecovery(){
   if(isCloudEmailLinked())return toast?.('Email sync is active. Use Sync with email on the other device.');
   const ws=getCloudWorkspace();
-  if(!ws.id||!ws.token)return toast?.('No cloud workspace linked yet');
-  const recovery=`${location.origin}${location.pathname}?workspace=${encodeURIComponent(ws.id)}&token=${encodeURIComponent(ws.token)}`;
-  navigator.clipboard?.writeText(recovery).then(()=>toast?.('Recovery link copied')).catch(()=>{
-    prompt('Recovery link',recovery);
-  });
+  const copyLink=()=>{
+    const latest=getCloudWorkspace();
+    if(!latest.id||!latest.token)return toast?.('No cloud workspace linked yet');
+    const recovery=`${location.origin}${location.pathname}?workspace=${encodeURIComponent(latest.id)}&token=${encodeURIComponent(latest.token)}`;
+    navigator.clipboard?.writeText(recovery).then(()=>toast?.('Workspace link copied')).catch(()=>{
+      prompt('Workspace link',recovery);
+    });
+  };
+  if(!ws.id||!ws.token){
+    saveCloudWorkspace(getCloudPayload(),{silent:true}).then(ok=>{
+      if(ok)copyLink();
+      else toast?.('No se pudo preparar el enlace del workspace');
+    });
+    return;
+  }
+  copyLink();
 }
 
 function openCloudLinkModal(){
@@ -206,19 +217,19 @@ function openCloudLinkModal(){
 
 function cloudRestoreFromTypedLink(){
   const raw=document.getElementById('cloud-link-input')?.value.trim();
-  if(!raw)return toast?.('Paste a cloud access link first');
+  if(!raw)return toast?.('Paste a workspace link first');
   let url;
-  try{url=new URL(raw,location.href);}catch(e){return toast?.('Invalid cloud access link');}
+  try{url=new URL(raw,location.href);}catch(e){return toast?.('Invalid workspace link');}
   const id=url.searchParams.get('workspace');
   const token=url.searchParams.get('token');
-  if(!id||!token)return toast?.('Invalid cloud access link');
+  if(!id||!token)return toast?.('Invalid workspace link');
   closeM?.('m-cloud-link');
   const run=async()=>{
     setCloudWorkspace(id,token);
     await loadCloudWorkspace({silent:false});
   };
   if(typeof customConfirm==='function'){
-    customConfirm('This will replace the current local workspace with the cloud copy from the access link.',run,'Restore cloud backup','Restore',false);
+    customConfirm('This will replace the current local workspace with the shared workspace.',run,'Open shared workspace','Open',false);
   }else{
     run();
   }

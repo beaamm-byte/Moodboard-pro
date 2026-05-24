@@ -82,41 +82,37 @@
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left:2px"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
     <div id="export-menu" style="display:none;position:fixed;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:6px;min-width:230px;box-shadow:0 8px 32px rgba(0,0,0,.2);z-index:30000;">
-      <div style="padding:4px 8px 2px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--txt3);">Backup</div>
+      <div style="padding:4px 8px 2px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--txt3);">Local save</div>
       <div class="ci" onclick="doExport('all');closeExportMenu()">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-        Workspace
+        Save workspace file
         <span style="font-size:10px;color:var(--txt3);margin-left:auto;">.mb</span>
       </div>
       <div class="ci" onclick="doExport('project');closeExportMenu()">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-        Project
+        Save project file
         <span style="font-size:10px;color:var(--txt3);margin-left:auto;">.mb</span>
       </div>
       <div class="ci ln"></div>
       <div style="padding:4px 8px 2px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--txt3);">Cloud sync</div>
-      <div class="ci" onclick="cloudSaveNow();closeExportMenu()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H7a5 5 0 1 1 1.6-9.74A7 7 0 0 1 22 12a4 4 0 0 1-4.5 7Z"/><path d="M12 12v6"/><path d="m9 15 3-3 3 3"/></svg>
-        Save cloud backup
-      </div>
       <div class="ci" onclick="openCloudEmailModal();closeExportMenu()">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
         Sync with email
       </div>
       <div class="ci" onclick="cloudShowRecovery();closeExportMenu()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        Copy access link
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4"/><path d="m15.4 6.5-6.8 4"/></svg>
+        Share workspace
       </div>
       <div class="ci ln"></div>
-      <div style="padding:4px 8px 2px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--txt3);">PDF</div>
+      <div style="padding:4px 8px 2px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--txt3);">Local save</div>
       <div class="ci" onclick="expPDF('current');closeExportMenu()">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        Current canvas
+        Save current canvas as PDF
         <span style="font-size:10px;color:var(--txt3);margin-left:auto;">PDF</span>
       </div>
       <div class="ci" onclick="expPDF('project');closeExportMenu()">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        Project canvases
+        Save project as PDF
         <span style="font-size:10px;color:var(--txt3);margin-left:auto;">PDF</span>
       </div>
     </div>
@@ -627,20 +623,20 @@
 <div class="mbg" id="m-import">
   <div class="mbox" style="max-width:380px;">
     <h3>Import</h3>
-    <p style="font-size:12px;color:var(--txt3);margin-bottom:14px;">Choose how you want to import the file.</p>
+    <p style="font-size:12px;color:var(--txt3);margin-bottom:14px;">Bring in a local file or connect this browser to a cloud workspace.</p>
+    <div class="cloud-import-title" style="margin-bottom:8px;">Local save</div>
     <div class="mrow" style="margin-bottom:14px;">
       <button class="mbtn sec" style="flex:1" onclick="chooseImportMode('workspace')">
-        Workspace
+        Open workspace file
       </button>
       <button class="mbtn sec" style="flex:1" onclick="chooseImportMode('project')">
-        Project
+        Open project file
       </button>
     </div>
     <div class="cloud-import-actions">
       <div class="cloud-import-title">Cloud sync</div>
-      <button class="mbtn sec" onclick="closeM('m-import');cloudLoadNow()">Restore cloud backup</button>
-      <button class="mbtn sec" onclick="closeM('m-import');openCloudLinkModal()">Restore from access link</button>
       <button class="mbtn sec" onclick="closeM('m-import');openCloudEmailModal()">Sync with email</button>
+      <button class="mbtn sec" onclick="closeM('m-import');openCloudLinkModal()">Open shared workspace</button>
     </div>
     <div class="mrow">
       <button class="mbtn sec" onclick="closeM('m-import')">Cancel</button>
@@ -649,12 +645,12 @@
 </div>
 <div class="mbg" id="m-cloud-link">
   <div class="mbox" style="max-width:440px;">
-    <h3>Restore from access link</h3>
-    <p class="modal-help">Paste the private cloud link copied from another browser. It will replace the local workspace after confirmation.</p>
+    <h3>Open shared workspace</h3>
+    <p class="modal-help">Paste a workspace link. It opens the full shared workspace and replaces the local workspace after confirmation.</p>
     <input class="minput" id="cloud-link-input" placeholder="https://.../?workspace=...&token=...">
     <div class="mrow">
       <button class="mbtn sec" onclick="closeM('m-cloud-link')">Cancel</button>
-      <button class="mbtn pri" onclick="cloudRestoreFromTypedLink()">Restore</button>
+      <button class="mbtn pri" onclick="cloudRestoreFromTypedLink()">Open workspace</button>
     </div>
   </div>
 </div>
