@@ -263,7 +263,8 @@ async function cloudSendEmailLink(){
     toast?.('Check your email for the confirmation link');
   }catch(e){
     console.warn('MoodBoard Pro email sync failed',e);
-    toast?.('No se pudo enviar el enlace de sincronización');
+    const msg=String(e?.message||'').trim();
+    toast?.(msg?('No se pudo enviar: '+msg):'No se pudo enviar el enlace de sincronización');
   }
 }
 
