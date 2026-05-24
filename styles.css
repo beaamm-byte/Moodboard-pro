@@ -313,6 +313,12 @@ body.compare-pick-mode .ref-preview{cursor:crosshair;}
 .mbtn.sec:hover{border-color:var(--border2);color:var(--txt);}
 .mbtn.pri{background:var(--accent);color:#fff;}
 .mbtn.pri:hover{filter:brightness(1.1);}
+.modal-help{font-size:12px;color:var(--txt3);line-height:1.45;margin:-6px 0 14px;}
+.cloud-import-actions{border:1px solid var(--border);border-radius:9px;background:var(--surface2);padding:10px;margin-bottom:14px;display:grid;gap:8px;}
+.cloud-import-title{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--txt3);}
+.cloud-import-actions .mbtn{width:100%;text-align:left;justify-content:flex-start;}
+.cloud-consent{display:flex;gap:9px;align-items:flex-start;font-size:11px;line-height:1.4;color:var(--txt3);margin:-4px 0 16px;user-select:text;}
+.cloud-consent input{margin-top:2px;accent-color:var(--accent);flex-shrink:0;}
 
 /* - CUSTOM CONFIRM DIALOG - */
 #confirm-overlay{position:fixed;inset:0;z-index:10000;background:rgba(10,10,12,.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;}

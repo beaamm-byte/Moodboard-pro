@@ -94,6 +94,20 @@
         <span style="font-size:10px;color:var(--txt3);margin-left:auto;">.mb</span>
       </div>
       <div class="ci ln"></div>
+      <div style="padding:4px 8px 2px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--txt3);">Cloud sync</div>
+      <div class="ci" onclick="cloudSaveNow();closeExportMenu()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H7a5 5 0 1 1 1.6-9.74A7 7 0 0 1 22 12a4 4 0 0 1-4.5 7Z"/><path d="M12 12v6"/><path d="m9 15 3-3 3 3"/></svg>
+        Save cloud backup
+      </div>
+      <div class="ci" onclick="openCloudEmailModal();closeExportMenu()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+        Sync with email
+      </div>
+      <div class="ci" onclick="cloudShowRecovery();closeExportMenu()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy access link
+      </div>
+      <div class="ci ln"></div>
       <div style="padding:4px 8px 2px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--txt3);">PDF</div>
       <div class="ci" onclick="expPDF('current');closeExportMenu()">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -220,9 +234,6 @@
 
   <div id="statusbar">
     <div id="save-indicator"><div class="sdot"></div><span id="s-save-statusbar" class="save-status">Auto-saved</span></div>
-    <button class="cloud-mini-btn" onclick="cloudSaveNow()" title="Save this workspace to Supabase">Cloud save</button>
-    <button class="cloud-mini-btn" onclick="cloudLoadNow()" title="Load the linked Supabase workspace">Cloud load</button>
-    <button class="cloud-mini-btn" onclick="cloudShowRecovery()" title="Copy recovery link">Copy cloud link</button>
     <span id="s-objs">0 objects</span>
     <span id="s-pos">x:0 y:0</span>
     <div style="flex:1"></div>
@@ -625,8 +636,40 @@
         Project
       </button>
     </div>
+    <div class="cloud-import-actions">
+      <div class="cloud-import-title">Cloud sync</div>
+      <button class="mbtn sec" onclick="closeM('m-import');cloudLoadNow()">Restore cloud backup</button>
+      <button class="mbtn sec" onclick="closeM('m-import');openCloudLinkModal()">Restore from access link</button>
+      <button class="mbtn sec" onclick="closeM('m-import');openCloudEmailModal()">Sync with email</button>
+    </div>
     <div class="mrow">
       <button class="mbtn sec" onclick="closeM('m-import')">Cancel</button>
+    </div>
+  </div>
+</div>
+<div class="mbg" id="m-cloud-link">
+  <div class="mbox" style="max-width:440px;">
+    <h3>Restore from access link</h3>
+    <p class="modal-help">Paste the private cloud link copied from another browser. It will replace the local workspace after confirmation.</p>
+    <input class="minput" id="cloud-link-input" placeholder="https://.../?workspace=...&token=...">
+    <div class="mrow">
+      <button class="mbtn sec" onclick="closeM('m-cloud-link')">Cancel</button>
+      <button class="mbtn pri" onclick="cloudRestoreFromTypedLink()">Restore</button>
+    </div>
+  </div>
+</div>
+<div class="mbg" id="m-cloud-email">
+  <div class="mbox" style="max-width:460px;">
+    <h3>Sync with email</h3>
+    <p class="modal-help">Use an email link to access the same MoodBoard workspace from another browser or computer. No password is needed.</p>
+    <input class="minput" id="cloud-email-input" type="email" placeholder="you@example.com" autocomplete="email">
+    <label class="cloud-consent">
+      <input type="checkbox" id="cloud-email-consent">
+      <span>I understand that my email is used to identify my cloud workspace and that my MoodBoard data will be stored in Supabase for syncing across devices.</span>
+    </label>
+    <div class="mrow">
+      <button class="mbtn sec" onclick="closeM('m-cloud-email')">Cancel</button>
+      <button class="mbtn pri" onclick="cloudSendEmailLink()">Send sync link</button>
     </div>
   </div>
 </div>
@@ -689,12 +732,13 @@ window.addEventListener('DOMContentLoaded',()=>{
   initDrawControls();
   replaceDecorativeEmojiIcons();
 
-  workspaceReady.then(fromWorkspace=>{
+  workspaceReady.then(async fromWorkspace=>{
     if(!Object.keys(projects).length){
       const pid=createProj('My First Project'); createCv(pid,'Board 1');
     } else if(!fromWorkspace){
       setTimeout(()=>{compactWorkspaceImageAssets().then(changed=>{if(changed)saveLS();}).catch(()=>{});},0);
     }
+    await initCloudAuth?.().catch(()=>{});
     const lastProj=localStorage.getItem('mbp_last_proj');
     const lastCv=localStorage.getItem('mbp_last_cv');
     if(lastProj&&projects[lastProj]&&lastCv&&projects[lastProj].canvases[lastCv]){
